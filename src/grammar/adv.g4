@@ -1,9 +1,9 @@
 grammar adv;
 
-program: alphabetDef automatonDef viewDef animationDef playDef EOF // not finished for test only
+program: alphabetDef (importstat| automatonDef |viewDef | animationDef |playDef)+ EOF // not finished for test only
 ;
+importstat:'import' ID ';';
 
-stat: ( algebricOP | forIn | viewportInstructions | propertiesDef ) ; //this is causing me headache
 /*
      Problem: forIn can repeat things but depending if im in animationDef or any def 
      I want to block certain operation like viewportInstructions. This could be done in semantic analysis
@@ -19,14 +19,19 @@ stat: ( algebricOP | forIn | viewportInstructions | propertiesDef ) ; //this is 
  */
 
 
-alphabetDef : 'alphabet' '{' (alphabetElement',')*alphabetElement '}';
+alphabetDef : 'alphabet' '{' (alphabetElement',')*alphabetElement '}' |
+'alphabet' ID '-' ID ;
+
 alphabetElement: SYMBOL'-'SYMBOL
                | SYMBOL
-;
+;    
 
-automatonDef: AutomatonTypes ID '<<<' /*stateDef+*/ stat* transitionDef '>>>';   // order might matter or not . Maybe create automatonBodyDef
+automatonDef: AutomatonTypes ID '<<<' stateDef+ automatonStat* transitionDef '>>>';   // order might matter or not . Maybe create automatonBodyDef
+automatonStat: (automatonFor |propertiesDef);
+automatonFor: 'for' ID 'in' expr automatonStat |
+     'for' ID 'in' expr '<<<' automatonStat '>>>';
 
-//stateDef: 'state' (ID',')*ID ';'; //idk why this doesnt work
+stateDef: 'state' (ID',')*ID ';'; 
 
 propertiesDef: ID propertyElement+ ';';         
 propertyElement: '[' PropertiesKeys '=' (ID+ |Number) ']' ; // This requires more attention
@@ -34,8 +39,10 @@ propertyElement: '[' PropertiesKeys '=' (ID+ |Number) ']' ; // This requires mor
 transitionDef:     'transition' (transitionElement',')*transitionElement ';';
 transitionElement: ID '->' (SYMBOL',')*SYMBOL '->' ID ;
 
-
-viewDef: 'view' ID 'of' ID '<<<' (placeDef|stat|transitionRedefine|gridDef)* '>>>'; // order might matter or not . Maybe create viewBodyDef
+viewDef: 'view' ID 'of' ID '<<<' (viewStat)* '>>>'; // order might matter or not . Maybe create viewBodyDef
+viewStat: (algebricOP| viewFor| placeDef| transitionRedefine| propertiesDef| gridDef);
+viewFor: 'for' ID 'in' expr viewStat |
+     'for' ID 'in' expr '<<<' viewStat '>>>';
 
 transitionRedefine: transition 'as' transitionPoint '--' (transitionPoint '--')* transitionPoint';'
                   | transitionLabelAlter ';';
@@ -53,23 +60,33 @@ placeElement: ID 'at' expr
 gridDef: 'grid' ID expr '[' (gridOptions',')*gridOptions ']' ';';
 gridOptions: GridProperties '=' (ID+ |Number) ;
 
-animationDef: 'animation' ID '<<<' ( viewportDef | viewportOn )* '>>>';
+animationDef: 'animation' ID '<<<' ( viewportDef | viewportOn )+  '>>>';
+
 
 viewportDef: 'viewport' ID 'for' ID 'at' expr '--' '++' expr ';';
-
-viewportOn: 'on' ID '<<<' stat* '>>>';
+viewportOn: 'on' ID '<<<' viewportStat* '>>>';
+viewportStat: (propertiesDef| viewportFor| viewportInstructions| algebricOP);
+viewportFor: 'for' ID 'in' expr viewportStat |
+     'for' ID 'in' expr '<<<' viewportStat '>>>';
 
 viewportInstructions: 'show' (viewportInstructionsShowElement',')*viewportInstructionsShowElement ';'
                     | 'show' ';'
                     | 'pause' ';'
 ;
-viewportInstructionsShowElement: ID propertyElement* | transition ;
+viewportInstructionsShowElement:ID propertyElement* | transition; 
 
 playDef: 'play' ID ';';
 
-decl: Type (ID',')*ID  
-     |Type (assign ',')*assign  
+decl: type (assign ',')*assign  | type (ID',')*ID  
 ;
+
+algebricOP: ( expr | decl | assign ) ';' ;
+
+whileStat:'while' booleanExpr 'do' expr; 
+
+ifStat:'if' booleanExpr 'do' expr;
+
+booleanExpr:expr? BoolOperator expr; //Review expr type
 
 expr:    op=('+'|'-') expr
          | expr op=('*'|'/') expr
@@ -83,7 +100,6 @@ expr:    op=('+'|'-') expr
 
 assign: ID '=' expr ;
 
-algebricOP: ( expr | decl | assign ) ';' ;
 
 list: '{{' (ID',')*ID '}}' ;
 
@@ -93,11 +109,10 @@ point: pointRect
 pointRect: '(' Number ',' Number ')' ;
 pointPol:  '(' Number ':' Number ')' ;
 
-forIn: 'for' ID 'in' expr stat
-     | 'for' ID 'in' expr '<<<' stat+ '>>>'
-;
+type: 'number' | 'point' | 'list' | 'string' | 'state' ;
 
-Type: 'number' | 'point' | 'list' | 'string' | 'state' ;
+BoolOperator: 'not'| 'and'| 'or';
+
 
 GridProperties: 'step'|'margin'|'color'|'line';
 PropertiesKeys: 'initial'|'accepting'|'align'|'slope'|'highlighted';
