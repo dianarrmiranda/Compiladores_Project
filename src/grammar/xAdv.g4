@@ -9,7 +9,7 @@ definition: automatonStyle |viewportStyle; //AnimationStyle?(ex. speed of transi
 automatonStyle: 'automaton {'AutomatonProperty ':' Value '}'//todos os autómatos
 |ID '{'AutomatonProperty ':' Value '}'; //um autómato em especifico
 
-viewportStyle: 'viewport {'ViewportProperty ':' Value '}'transitions
+viewportStyle: 'viewport {'ViewportProperty ':' Value '}'
 |ID '{'ViewportProperty ':' Value '}';
 
 AutomatonProperty:'color'| 'size' | 'font-size' | 'linecolor';
