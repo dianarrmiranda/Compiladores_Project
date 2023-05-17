@@ -111,7 +111,7 @@ pointPol:  '(' Number ':' Number ')' ;
 
 type: 'number' | 'point' | 'list' | 'string' | 'state' ;
 
-BoolOperator: 'not'| 'and'| 'or';
+BoolOperator: 'not'| 'and'| 'or'; //  >,<,== would make more sense? Look at TaskGuide
 
 
 GridProperties: 'step'|'margin'|'color'|'line';
