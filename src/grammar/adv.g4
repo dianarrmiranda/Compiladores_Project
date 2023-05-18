@@ -108,10 +108,10 @@ point: pointRect
 pointRect: '(' Number ',' Number ')' ;
 pointPol:  '(' Number ':' Number ')' ;
 
-type: 'number' | 'point' | 'list' | 'string' | 'state' ;
+type: number='number' | ponto='point' | lista='list' | string='string' | state='state' ;       // meti ponto e lista para não ter conflito com as regras point e list
 
-gridProperties: 'step'|'margin'|'color'|'line';
-propertiesKeys: 'initial'|'accepting'|'align'|'slope'|'highlighted';
+gridProperties: step='step'|margin='margin'|color='color'|line='line';
+propertiesKeys: initial='initial'|accepting='accepting'|align='align'|slope='slope'|highlighted='highlighted';
 
 Number:  ('+'|'-')?[0-9]+('.'[0-9]+)?; 
 ID:      [a-zA-Z][a-zA-Z0-9]*;

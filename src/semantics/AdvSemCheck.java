@@ -5,8 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.HashMap;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
-
-
 @SuppressWarnings("CheckReturnValue")
 public class AdvSemCheck extends advBaseVisitor<Boolean> {
    /* TYPES */
@@ -18,13 +16,13 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    // ParseTreeProperty usada para passar os simbolos de alphabetElement para alphabetDef,
    // é capaz de ser boa ideia mudar isto, está ineficiente
    private ParseTreeProperty<ArrayList<Character>> alphabetValues = new ParseTreeProperty<>();
+   private ParseTreeProperty<String> valuesToString = new ParseTreeProperty<>();
    // alphabetChars vai ter os carateres do alfabeto
    private ArrayList<Character> alphabetChars;
    private SymbolTable globalSymbolTable = new SymbolTable(null);
    private SymbolTable currentSymbolTable = globalSymbolTable;
    private int numInitialStates = 0;
    private int numAcceptingStates = 0;
-
 
 
    @Override public Boolean visitProgram(advParser.ProgramContext ctx) {
@@ -39,7 +37,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       //return res;
    }
 
-
    /* Verificar se há simbolos repetidos no alfabeto */
    @Override public Boolean visitAlphabetDef(advParser.AlphabetDefContext ctx) {
       Boolean res = true;
@@ -50,7 +47,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
             currentChars = alphabetValues.get(ctx.alphabetElement(i));
             for (int j = 0; j < currentChars.size(); j++) {
                if (alphabetChars.contains(currentChars.get(j))) {
-                  System.out.printf("Duplicate symbol in alphabet -  \"%s\"\n", currentChars.get(j));
+                  System.err.printf("Duplicate symbol in alphabet -  \"%s\"\n", currentChars.get(j));
                   ErrorHandling.registerError();
                } else
                   alphabetChars.add(currentChars.get(j));
@@ -72,6 +69,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          second = ctx.SYMBOL(1).getText().charAt(1);
          if (first > second) 
          {
+
             ErrorHandling.registerError();
             res = false;
          } else {
@@ -89,19 +87,12 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       return res;
    }
 
-   @Override public Boolean visitAutomatonDef(advParser.AutomatonDefContext ctx) {
+   @Override public Boolean visitAutomatonNFADef(advParser.AutomatonNFADefContext ctx) {
       Boolean res = true;
       numInitialStates = 0;
       numAcceptingStates = 0;
       int i;
-      Type automatonType;
-      
-      if (ctx.AutomatonTypes().getText() == "NFA")
-         automatonType = NFA_TYPE;
-      else if (ctx.AutomatonTypes().getText() == "DFA")
-         automatonType = DFA_TYPE;
-      else
-         automatonType = COMPLETE_DFA_TYPE;
+      Type automatonType = NFA_TYPE;
 
       String symbolName = ctx.ID().getText();
       // Verificar se automato com este ID já foi definido, se foi, então houve erro
@@ -128,33 +119,119 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       visit(ctx.transitionDef());
 
       if (numAcceptingStates == 0) {
-         System.out.println("Automaton should have at least 1 accepting state.");
+         System.err.println("Automaton should have at least 1 accepting state.");
          ErrorHandling.registerError();
       }
 
       if (numInitialStates != 1) {
-         System.out.println("Automaton should have one and only one initial state.");
+         System.err.println("Automaton should have one and only one initial state.");
          ErrorHandling.registerError();
       }
 
       return res;
    }
-   // TODO: FAZER ISTO
+
+   @Override public Boolean visitAutomatonDFADef(advParser.AutomatonDFADefContext ctx) {
+      Boolean res = true;
+      numInitialStates = 0;
+      numAcceptingStates = 0;
+      int i;
+      Type automatonType;
+      if (ctx.complete != null) {
+         automatonType = COMPLETE_DFA_TYPE;
+      } else
+         automatonType = DFA_TYPE;
+
+      String symbolName = ctx.ID().getText();
+      // Verificar se automato com este ID já foi definido, se foi, então houve erro
+      if (globalSymbolTable.containsSymbol(symbolName)) {
+         ErrorHandling.registerError();
+         res = false;
+      } else 
+         globalSymbolTable.putSymbol(symbolName, new Symbol(automatonType));
+
+      // Agora, verificar stateDefs
+      currentSymbolTable = new SymbolTable(globalSymbolTable);
+      // Visitar o stateDef, que vai verificar se há simbolos repetidos e po-los 
+      // na currentSymbolTable
+      for (i = 0; i < ctx.stateDef().size(); i++)
+      {
+         visit(ctx.stateDef(i));
+      }
+
+      for (i = 0; i < ctx.automatonStat().size(); i++)
+      {
+         visit(ctx.automatonStat(i));
+
+      }
+      visit(ctx.transitionDef());
+
+      if (numAcceptingStates == 0) {
+         System.err.println("Automaton should have at least 1 accepting state.");
+         ErrorHandling.registerError();
+      }
+
+      if (numInitialStates != 1) {
+         System.err.println("Automaton should have one and only one initial state.");
+         ErrorHandling.registerError();
+      }
+
+      return res;
+   }
+
    @Override public Boolean visitAutomatonStat(advParser.AutomatonStatContext ctx) {
       Boolean res = null;
-
       if (ctx.automatonFor() != null) {
          visit(ctx.automatonFor());
-      } else {
+         System.out.println("\n\n Há um for \n\n");
+      } else if (ctx.automatonIf() != null)
+         visit(ctx.automatonIf());
+      else if (ctx.automatonWhile() != null)
+         visit(ctx.automatonWhile());
+      else if (ctx.propertiesDef() != null)
          visit(ctx.propertiesDef());
-      }
       
       return res;
    }
 
-   // TODO: não sei o que fazer aqui, tenho de pedir ajuda 
    @Override public Boolean visitAutomatonFor(advParser.AutomatonForContext ctx) {
       Boolean res = null;
+      // O ID do for apenas existe enquanto o for existir
+      String forVarID = ctx.ID().getText();
+      // TODO: Aqui não tenho a certeza se o type dos elementos da lista é obrigatoriamente estados
+      // para já, vou assumir que os elementos da lista são states
+      currentSymbolTable.putSymbol(forVarID, new Symbol(STATE_TYPE));
+      visit(ctx.expr());
+      // Verificar se o expr devolve uma lista
+      String typeExpr = valuesToString.get(ctx.expr());
+      if (!typeExpr.equals("list"))
+      {
+         System.err.printf("Invalid type of expression in AutomatonFor. Correct use -> for [id] in [list]\n");
+         ErrorHandling.registerError();
+      }
+      // Depois disto, chamar os automatonStats
+      if (ctx.automatonStat().size() == 1)
+      {
+         visit(ctx.automatonStat(0));
+      } else
+         for (int i = 0; i < ctx.automatonStat().size(); i++) {
+            visit(ctx.automatonStat(i));
+      }
+      currentSymbolTable.removeSymbol(forVarID);
+      return res;
+   }
+
+   // TODO: expr tem de ser boolean ofc
+   @Override public Boolean visitAutomatonWhile(advParser.AutomatonWhileContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitAutomatonIf(advParser.AutomatonIfContext ctx) {
+      Boolean res = null;
+      // expr em automatonIf tem de ser uma expressão booleana
+      visit(ctx.expr());
       return res;
    }
 
@@ -168,19 +245,20 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          if (currentSymbolTable.containsSymbol(currId)) {
             res = false;
             ErrorHandling.registerError();
-            System.out.printf("Duplicate state -  \"%s\"\n", currId);
+            System.err.printf("Duplicate state -  \"%s\"\n", currId);
          } else
             currentSymbolTable.putSymbol(currId, new Symbol(STATE_TYPE));
-      }
-      return res;
    }
+   return res;
+}
 
    // TODO: mudar containsSymbol para lookup
    @Override public Boolean visitPropertiesDef(advParser.PropertiesDefContext ctx) {
       Boolean res = null;
       String stateID = ctx.ID().getText();
+      System.out.println("State id in propertiesDef: " + stateID);
       if (!currentSymbolTable.containsSymbol(ctx.ID().getText())) {
-         System.out.printf("Can't define property for state \"%s\". Symbol not found.\n", stateID);
+         System.err.printf("Can't define property for state \"%s\". Symbol not found.\n", stateID);
          ErrorHandling.registerError();
       } else {
          for (int i = 0; i < ctx.propertyElement().size(); i++)
@@ -193,7 +271,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitPropertyElement(advParser.PropertyElementContext ctx) {
       Boolean res = true;
-      String propertyKey = ctx.PropertiesKeys().getText();
+      String propertyKey = ctx.propertiesKeys().getText();
       String propertyValue = "";
       if (ctx.ID() != null) {
          for (int i = 0; i < ctx.ID().size(); i++)
@@ -203,43 +281,43 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       } else if (ctx.Number() != null) {
          propertyValue = propertyValue + ctx.Number().getText();
       }
-      //System.out.println("Property key: "  + propertyKey);
-      //System.out.println("Property Value: " + propertyValue);
+      //System.err.println("Property key: "  + propertyKey);
+      //System.err.println("Property Value: " + propertyValue);
 
       if (propertyKey.equals("initial"))  // true ou false
       {
          if (!propertyValue.equals("true ") && !propertyValue.equals("false ")) {
-            System.out.println("Invalid property value for \"" + propertyKey + "\" as propertyKey");
+            System.err.println("Invalid property value for \"" + propertyKey + "\" as propertyKey");
             ErrorHandling.registerError();
          } else {
             if (numInitialStates == 0) {
                numInitialStates++;
             } else {
-               System.out.println("Too many initial states, only 1 may be allowed.");
+               System.err.println("Too many initial states, only 1 may be allowed.");
             }
          }
       } else if (propertyKey.equals("accepting")) {
          if (!propertyValue.equals("true ") && !propertyValue.equals("false ")) {
-            System.out.printf("Invalid property value for \"%s\" as propertyKey - \"%s\"\n", propertyKey, propertyValue);
+            System.err.printf("Invalid property value for \"%s\" as propertyKey - \"%s\"\n", propertyKey, propertyValue);
             ErrorHandling.registerError();
          } else {
             numAcceptingStates++;
          }
       } else if (propertyKey.equals("align")) {
          if (validAlignProperty(propertyValue)) {
-            System.out.println("Invalid property value for \"" + propertyKey + "\" as propertyKey");
+            System.err.println("Invalid property value for \"" + propertyKey + "\" as propertyKey");
             ErrorHandling.registerError();
          } 
 
       } else if (propertyKey.equals("slope")) {
          // Tem de ser um valor numerico (mas não sei se inclui 0)
          if (!propertyValue.matches("[1-9][0-9]*")) {
-            System.out.println("Invalid property value for \"" + propertyKey + "\" as propertyKey");
+            System.err.println("Invalid property value for \"" + propertyKey + "\" as propertyKey");
             ErrorHandling.registerError();
          } 
       } else if (propertyKey.equals("highlighted")) {
          if (!propertyValue.equals("true ") && !propertyValue.equals("false ")) {
-            System.out.println("Invalid property value for \"" + propertyKey + "\" as propertyKey");
+            System.err.println("Invalid property value for \"" + propertyKey + "\" as propertyKey");
             ErrorHandling.registerError();
          } 
       }
@@ -268,12 +346,12 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       // Verificar se os IDs da transição são estados existentes
       if (fromSymbol == null || fromSymbol.type() != STATE_TYPE)
       {
-         System.out.println("Invalid \"from\" symbol in transitions definition: " + fromId);
+         System.err.println("Invalid \"from\" symbol in transitions definition: " + fromId);
          ErrorHandling.registerError();
       }
       if (toSymbol == null || toSymbol.type() != STATE_TYPE)
       {
-         System.out.println("Invalid \"to\" symbol in transitions definition: " + toId);
+         System.err.println("Invalid \"to\" symbol in transitions definition: " + toId);
          ErrorHandling.registerError();
       }
       // Verificar se os símbolos que causam a transição estão no alfabeto
@@ -281,11 +359,12 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          curr_alph_symbol = ctx.SYMBOL(i).getText().charAt(1);
          if (!alphabetChars.contains(curr_alph_symbol)) {
             ErrorHandling.registerError();
-            System.out.printf("\"%s\" not found in alphabet.\n", curr_alph_symbol);
+            System.err.printf("\"%s\" not found in alphabet.\n", curr_alph_symbol);
          }        
       }
       return res;
    }
+
 
    @Override public Boolean visitViewDef(advParser.ViewDefContext ctx) {
       Boolean res = null;
@@ -294,20 +373,21 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       Symbol automatonSymbol = globalSymbolTable.findSymbol(automatonID);
       // Verificar se há algum simbolo com o ID definido para esta view
       if (globalSymbolTable.containsSymbol(viewID)) {
-         System.out.printf("Invalid ID for view -  Already taken.\n");
+         System.err.printf("Invalid ID for view -  Already taken.\n");
          ErrorHandling.registerError();
       }
       // Verificar se ID de automato dado existe e está associado a um automato
       if (automatonSymbol == null) {
-         System.out.printf("Automaton ID not found - \"%d\"\n", automatonID);
+         System.err.printf("Automaton ID not found - \"%d\"\n", automatonID);
          ErrorHandling.registerError();
       }
       if (automatonSymbol.type().subtype(AUTOMATON_TYPE)) {
-         System.out.printf("Invalid type for automaton given.\n");
+         System.err.printf("Invalid type for automaton given.\n");
          ErrorHandling.registerError();
       }
       return res;
    }
+
 
    @Override public Boolean visitViewStat(advParser.ViewStatContext ctx) {
       Boolean res = null;
@@ -393,6 +473,18 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       //return res;
    }
 
+   @Override public Boolean visitViewportWhile(advParser.ViewportWhileContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitViewportIf(advParser.ViewportIfContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
    @Override public Boolean visitViewportFor(advParser.ViewportForContext ctx) {
       Boolean res = null;
       return visitChildren(ctx);
@@ -429,25 +521,115 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       //return res;
    }
 
-   @Override public Boolean visitWhileStat(advParser.WhileStatContext ctx) {
+   @Override public Boolean visitAndExpr(advParser.AndExprContext ctx) {
+      Boolean res = null;
+      // VERIFICAR QUE ctx.expr(0) e ctx.expr(1) são boolean tambem
+      // TODO: problema -> expr pode derivar em exprs infinitamente e têm de ser todos boolean
+      // ou seja, provavelmente tenho de usar os returns
+
+      //return res;
+   }
+
+   @Override public Boolean visitMultDivExpr(advParser.MultDivExprContext ctx) {
       Boolean res = null;
       return visitChildren(ctx);
       //return res;
    }
 
-   @Override public Boolean visitIfStat(advParser.IfStatContext ctx) {
+   @Override public Boolean visitIDExpr(advParser.IDExprContext ctx) {
       Boolean res = null;
       return visitChildren(ctx);
       //return res;
    }
 
-   @Override public Boolean visitBooleanExpr(advParser.BooleanExprContext ctx) {
+   @Override public Boolean visitPointExpr(advParser.PointExprContext ctx) {
       Boolean res = null;
       return visitChildren(ctx);
       //return res;
    }
 
-   @Override public Boolean visitExpr(advParser.ExprContext ctx) {
+   @Override public Boolean visitUnaryExpr(advParser.UnaryExprContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitParanthesisExpr(advParser.ParanthesisExprContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitOrExpr(advParser.OrExprContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitBiggerOrEqualExpr(advParser.BiggerOrEqualExprContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitSmallerExpr(advParser.SmallerExprContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitEqualsExpr(advParser.EqualsExprContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitParanthesisIDExpr(advParser.ParanthesisIDExprContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitNumberExpr(advParser.NumberExprContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitReadExpr(advParser.ReadExprContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitBiggerExpr(advParser.BiggerExprContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitSmallerOrEqualExpr(advParser.SmallerOrEqualExprContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitNotExpr(advParser.NotExprContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitListExpr(advParser.ListExprContext ctx) {
+      Boolean res = null;
+
+      // USADO NO AUTOMATONFOR para verificar se Expr é uma lista
+      valuesToString.put(ctx, "list");
+      return visitChidren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitAddSubExpr(advParser.AddSubExprContext ctx) {
       Boolean res = null;
       return visitChildren(ctx);
       //return res;
@@ -489,6 +671,18 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       //return res;
    }
 
+   @Override public Boolean visitGridProperties(advParser.GridPropertiesContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitPropertiesKeys(advParser.PropertiesKeysContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
    public static boolean validAlignProperty(String property)
    {
       List<String> possibleProperties = new ArrayList<>(Arrays.asList(
@@ -500,6 +694,20 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          "above right",
          "below left ",
          "below right "
+         ));
+      return possibleProperties.contains(property);
+   }
+
+   public static boolean isValidBoolean(String property)
+   {
+      List<String> possibleProperties = new ArrayList<>(Arrays.asList(
+         "and",
+         "not",
+         "or",
+         "lesser",
+         "greater",
+         "greater or equal",
+         "equals",
          ));
       return possibleProperties.contains(property);
    }
