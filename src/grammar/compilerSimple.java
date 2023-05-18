@@ -17,8 +17,7 @@ public class compilerSimple extends advBaseVisitor<ST> {
    private int numVar=0;
 
    private String newVar() {
-      numVar++;
-      return "v" + numVar;
+      return "v" + numVar++;
    }
 
    private String getVar(String v){
@@ -33,9 +32,11 @@ public class compilerSimple extends advBaseVisitor<ST> {
 
    @Override public ST visitProgram(advParser.ProgramContext ctx) {
       ST res = templates.getInstanceOf("module");
-      for(advParser.StatContext c : ctx.stat())
-         if(visit(c)!=null)
-            res.add("stat", visit(c).render());
+      for(advParser.StatContext c : ctx.stat()){
+         ST st = visit(c);
+         if(st!=null)
+            res.add("stat", st.render());
+      }
       return res;
    }
 
@@ -46,9 +47,15 @@ public class compilerSimple extends advBaseVisitor<ST> {
    }
 
    @Override public ST visitAutomatonNFADef(advParser.AutomatonNFADefContext ctx) {
+
       ST res = templates.getInstanceOf("stats");
+      ST ass = templates.getInstanceOf("assign");
       ST aut = templates.getInstanceOf("automaton");
       aut.add("name",ctx.ID().getText());
+
+      String var = newVar();
+      setVar(ctx.ID().getText(), var);
+      ass.add("var",var);
 
       for(advParser.StateDefContext c : ctx.stateDef()){
          res.add("stat", visit(c).render());
@@ -64,15 +71,20 @@ public class compilerSimple extends advBaseVisitor<ST> {
       for(String s : decl.get(ctx.transitionDef()))
          aut.add("transition",s);
 
-      res.add("stat",aut.render());
-      System.out.println(res.render());
+      ass.add("value",aut.render());
+      res.add("stat",ass.render());
       return res;
    }
 
    @Override public ST visitAutomatonDFADef(advParser.AutomatonDFADefContext ctx) {
       ST res = templates.getInstanceOf("stats");
+      ST ass = templates.getInstanceOf("assign");
       ST aut = templates.getInstanceOf("automaton");
       aut.add("name",ctx.ID().getText());
+
+      String var = newVar();
+      setVar(ctx.ID().getText(), var);
+      ass.add("var",var);
 
       for(advParser.StateDefContext c : ctx.stateDef()){
          res.add("stat", visit(c).render());
@@ -88,8 +100,8 @@ public class compilerSimple extends advBaseVisitor<ST> {
       for(String s : decl.get(ctx.transitionDef()))
          aut.add("transition",s);
 
-      res.add("stat",aut.render());
-
+      ass.add("value",aut.render());
+      res.add("stat",ass.render());
       return res;
    }
 

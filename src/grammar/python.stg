@@ -31,11 +31,11 @@ map(elem,key) ::= <<
 >>
 mapElem(elem,key) ::= "<elem> : <key>"
 
-state(label,accepting,initial) ::= "State(<label><if(accepting)>,accepting=<accepting><endif><if(initial)>,initial=<initial><endif>)"
+state(label,accepting,initial) ::= "State('<label>'<if(accepting)>,accepting=<accepting><endif><if(initial)>,initial=<initial><endif>)"
 
-transition(label,stateStart,stateEnd) ::= <<Transition(<label; separator=",">,<stateStart>,<stateEnd>)>>
+transition(label,stateStart,stateEnd) ::= <<Transition('<label; separator=",">',<stateStart>,<stateEnd>)>>
 
-automaton(name,state,transition) ::= "Automaton(<name>,<array(state)>,<array(transition)>)"
+automaton(name,state,transition) ::= "Automaton('<name>',<array(state)>,<array(transition)>)"
 
 view(automaton,state,slocation,transition,tlocation) ::= "View(<automaton>,<map(state,slocation)>,<map(transition,tlocation)>)"
 
