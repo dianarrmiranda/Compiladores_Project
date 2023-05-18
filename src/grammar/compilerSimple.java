@@ -18,7 +18,7 @@ public class compilerSimple extends advBaseVisitor<ST> {
 
    private String newVar() {
       numVar++;
-      return "state" + numVar;
+      return "v" + numVar;
    }
 
    private String getVar(String v){
@@ -34,7 +34,8 @@ public class compilerSimple extends advBaseVisitor<ST> {
    @Override public ST visitProgram(advParser.ProgramContext ctx) {
       ST res = templates.getInstanceOf("module");
       for(advParser.StatContext c : ctx.stat())
-         res.add("stat", visit(c).render());
+         if(visit(c)!=null)
+            res.add("stat", visit(c).render());
       return res;
    }
 
@@ -64,7 +65,7 @@ public class compilerSimple extends advBaseVisitor<ST> {
          aut.add("transition",s);
 
       res.add("stat",aut.render());
-
+      System.out.println(res.render());
       return res;
    }
 
@@ -155,8 +156,12 @@ public class compilerSimple extends advBaseVisitor<ST> {
 
    @Override public ST visitTransitionDef(advParser.TransitionDefContext ctx) {
       ST res = templates.getInstanceOf("stats");
-      for(advParser.TransitionElementContext c: ctx.transitionElement())
+      LinkedList<String> l = new LinkedList<>();
+      for(advParser.TransitionElementContext c: ctx.transitionElement()){
          res.add("stat",visit(c).render());
+         l.add(decl.get(c).get(0));
+      }
+      decl.put(ctx,l);
       return res;
    }
 
@@ -167,12 +172,14 @@ public class compilerSimple extends advBaseVisitor<ST> {
       LinkedList l = new LinkedList<String>();
       l.add(var);
       decl.put(ctx,l);
+      res.add("var",var);
       for(TerminalNode n : ctx.SYMBOL())
-         res.add("label",n.getText());
+         transition.add("label",n.getText());
       String startSt = getVar(ctx.ID(0).getText());
       String endSt = getVar(ctx.ID(1).getText());
-      res.add("stateStart",startSt);
-      res.add("stateEnd",endSt);
+      transition.add("stateStart",startSt);
+      transition.add("stateEnd",endSt);
+      res.add("value",transition.render());
       return res;
    }
 
