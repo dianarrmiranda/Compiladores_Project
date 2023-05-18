@@ -1,0 +1,18 @@
+alphabet {'a', 'b', 'a'}
+
+complete DFA a2 <<<
+    state A, B, A;
+    A [initial = true];
+    A [accepting = test];
+    C [accepting = true];
+    B [accepting = true];
+    for ar in {{A,B,C}} <<< xd [accepting = true]; dx [accepting = false]; >>> 
+    for br in {{A,B,C}} ar [accepting = true]; 
+
+
+    transition 
+        A -> 'a','b' -> B,
+        A -> 'a','b','c' -> A, 
+        A -> 'c' -> D; // error aqui, D é invalido e 'c' não pertence ao alfabeto
+
+>>>
