@@ -1,7 +1,9 @@
 grammar adv;
 
-program: alphabetDef (importstat| automatonNFADef| automatonDFADef |viewDef | animationDef |playDef)+ EOF // not finished for test only
+program: alphabetDef stat* EOF
 ;
+stat:(importstat| automatonDef | viewDef | animationDef |playDef);
+
 importstat:'import' ID ';';
 
 alphabetDef : 'alphabet' '{' (alphabetElement',')*alphabetElement '}' |
@@ -11,17 +13,18 @@ alphabetElement: SYMBOL'-'SYMBOL
                | SYMBOL
 ;    
 
+automatonDef: automatonNFADef | automatonDFADef;
 automatonNFADef: 'NFA' ID '<<<' stateDef+ automatonStat+ transitionDef '>>>';   
 automatonDFADef: complete='complete'? 'DFA' ID '<<<' stateDef+ automatonStat+ transitionDef '>>>';   
 
-automatonStat: (automatonFor |automatonIf |automatonWhile |propertiesDef);
+automatonStat: (automatonFor |automatonIf |automatonWhile |propertiesDef | algebricOP);
 
-automatonFor: 'for' ID 'in' expr automatonStat |
-     'for' ID 'in' expr '<<<' automatonStat+ '>>>';
-automatonWhile:'while' expr 'do' automatonStat|
-'while' expr 'do' '<<<'automatonStat+'>>>';
-automatonIf:'if' expr 'do' automatonStat|
-'if' expr 'do' '<<<'automatonStat+'>>>';
+automatonFor: 'for' ID 'in' expr automatonStat 
+            |'for' ID 'in' expr '<<<' automatonStat+ '>>>';
+automatonWhile:'while' expr 'do' automatonStat
+            |'while' expr 'do' '<<<'automatonStat+'>>>';
+automatonIf:'if' expr 'do' automatonStat
+            |'if' expr 'do' '<<<'automatonStat+'>>>';
 stateDef: 'state' (ID',')*ID ';'; 
 
 propertiesDef: ID propertyElement+ ';';         
@@ -30,16 +33,20 @@ propertyElement: '[' propertiesKeys '=' (ID+ |Number) ']' ; // This requires mor
 transitionDef:     'transition' (transitionElement',')*transitionElement ';';
 transitionElement: ID '->' (SYMBOL',')*SYMBOL '->' ID ;
 
-viewDef: 'view' ID 'of' ID '<<<' (viewStat)* '>>>'; // order might matter or not . Maybe create viewBodyDef
-viewStat: (algebricOP| viewFor| placeDef| transitionRedefine| propertiesDef| gridDef);
-viewFor: 'for' ID 'in' expr viewStat |
-     'for' ID 'in' expr '<<<' viewStat+ '>>>';
+viewDef: 'view' ID 'of' ID '<<<' (viewStat)* '>>>'; 
+viewStat: (algebricOP| viewFor| placeDef| transitionRedefine| propertiesDef| gridDef|viewIf|viewWhile);
+viewFor: 'for' ID 'in' expr viewStat 
+       |'for' ID 'in' expr '<<<' viewStat+ '>>>';
+viewWhile:'while' expr 'do' viewStat
+               |'while' expr 'do' '<<<'viewStat+'>>>'; 
+viewIf:'if' expr 'do' viewStat
+          |'if' expr 'do' '<<<'viewStat+'>>>';
 
 transitionRedefine: transition 'as' transitionPoint '--' (transitionPoint '--')* transitionPoint';'
                   | transitionLabelAlter ';';
 transitionPoint: expr propertyElement*;
 
-transitionLabelAlter: transition '#label' propertyElement*;
+transitionLabelAlter: transition '#label' propertyElement?;
 
 transition: '<'ID','ID'>' ;
 
@@ -56,14 +63,14 @@ animationDef: 'animation' ID '<<<' ( viewportDef | viewportOn )+  '>>>';
 
 viewportDef: 'viewport' ID 'for' ID 'at' expr '--' '++' expr ';';
 viewportOn: 'on' ID '<<<' viewportStat+ '>>>';
-viewportStat: (propertiesDef| viewportFor| viewportInstructions| algebricOP);
+viewportStat: (propertiesDef| viewportFor| viewportInstructions| algebricOP | viewportIf | viewportWhile);
 
-viewportWhile:'while' expr 'do' viewportStat|
-'while' expr 'do' '<<<'viewportStat+'>>>'; 
-viewportIf:'if' expr 'do' viewportStat|
-'if' expr 'do' '<<<'viewportStat+'>>>';
-viewportFor: 'for' ID 'in' expr viewportStat |
-     'for' ID 'in' expr '<<<' viewportStat+ '>>>';
+viewportWhile:'while' expr 'do' viewportStat
+               |'while' expr 'do' '<<<'viewportStat+'>>>'; 
+viewportIf:'if' expr 'do' viewportStat
+          |'if' expr 'do' '<<<'viewportStat+'>>>';
+viewportFor: 'for' ID 'in' expr viewportStat 
+          |'for' ID 'in' expr '<<<' viewportStat+ '>>>';
 
 viewportInstructions: 'show' (viewportInstructionsShowElement',')*viewportInstructionsShowElement ';'
                     | 'show' ';'
@@ -78,17 +85,14 @@ decl: type (assign ',')*assign  | type (ID',')*ID
 
 algebricOP: ( expr | decl | assign ) ';' ;
 
-expr:      'not' expr #NotExpr
+expr:     op=('+'|'-') expr #UnaryExpr
+         |'not' expr #NotExpr
+         | expr op=('*'|'/') expr #MultDivExpr
+         | expr op=('+'|'-') expr #AddSubExpr
+         | expr op=('>'|'<'|'>='|'<=') expr #CompareExpr
+         | expr op=('=='|'!=') expr #EqualsExpr
          | expr 'and' expr #AndExpr
          | expr 'or' expr #OrExpr
-         | expr '>' expr #BiggerExpr
-         | expr '<' expr #SmallerExpr
-         | expr '==' expr #EqualsExpr
-         | expr '>=' expr #BiggerOrEqualExpr
-         | expr '<=' expr #SmallerOrEqualExpr
-         | op=('+'|'-') expr #UnaryExpr
-         | expr op=('+'|'-') expr #AddSubExpr
-         | expr op=('*'|'/') expr #MultDivExpr
          | '(' ID ')' #ParanthesisIDExpr
          | '(' expr ')' #ParanthesisExpr
          | point #PointExpr 
@@ -99,7 +103,6 @@ expr:      'not' expr #NotExpr
 ;
 assign: ID '=' expr ;
 
-
 list: '{{' (ID',')*ID '}}' ;
 
 point: pointRect 
@@ -108,10 +111,10 @@ point: pointRect
 pointRect: '(' Number ',' Number ')' ;
 pointPol:  '(' Number ':' Number ')' ;
 
-type: number='number' | ponto='point' | lista='list' | string='string' | state='state' ;       // meti ponto e lista para não ter conflito com as regras point e list
+type: t=('number' | 'point' | 'list' | 'string' | 'state'| 'boolean') ; 
 
-gridProperties: step='step'|margin='margin'|color='color'|line='line';
-propertiesKeys: initial='initial'|accepting='accepting'|align='align'|slope='slope'|highlighted='highlighted';
+gridProperties: prop=('step'|'margin'|'color'|'line');
+propertiesKeys: prop=('initial'|'accepting'|'align'|'slope'|'highlighted');
 
 Number:  ('+'|'-')?[0-9]+('.'[0-9]+)?; 
 ID:      [a-zA-Z][a-zA-Z0-9]*;

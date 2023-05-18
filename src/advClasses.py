@@ -42,7 +42,7 @@ class Automaton:
 
 class State:
 
-    def __init__(self, label , accepting = False , initial = False):
+    def __init__(self, label , accepting = "False" , initial = "False"):
         
         self.label = label
 

@@ -1,7 +1,7 @@
-module(stat,imp) ::= <<
-from advClasses impor *
-from numpy impor *
-<stats(imp)>
+module(stat,importS) ::= <<
+from advClasses import *
+from numpy import *
+<stats(importS)>
 
 def main():
     <stats(stat)>
@@ -47,9 +47,9 @@ play(animation) ::= "<animation>.play()"
 
 setP(var,prop,value) ::= <<<var>.set<prop>('<value; separator=" ">')>>
 
-importS(file) ::= "impor <file>"
+importS(file) ::= "import <file>"
 
-forIn(var,list,stat) :: = <<
+forIn(var,list,stat) ::= <<
     for <var> in <list>:
         <stats(stat)>
 >>
