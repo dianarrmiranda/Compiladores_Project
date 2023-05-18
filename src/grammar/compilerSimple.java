@@ -186,7 +186,7 @@ public class compilerSimple extends advBaseVisitor<ST> {
       decl.put(ctx,l);
       res.add("var",var);
       for(TerminalNode n : ctx.SYMBOL())
-         transition.add("label",n.getText());
+         transition.add("label",n.getText().replace('\'','\0'));
       String startSt = getVar(ctx.ID(0).getText());
       String endSt = getVar(ctx.ID(1).getText());
       transition.add("stateStart",startSt);
