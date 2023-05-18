@@ -1,0 +1,43 @@
+module(name,stat,import) ::= <<
+
+from advClasses import *
+from numpy import *
+<stats(import)>
+
+def main():
+    <stats(stat)>
+
+if __name__ == "__main__":
+    main()
+>>
+
+stats(stat) ::= <<
+<if(stat)><stat; separator="\n"><endif>
+>>
+
+assign(var,value) ::= "<var> = <value>"
+
+binaryOperation(var,e1,op,e2) ::= "<assign(var,[e1,\" \",op,\" \",e2])>"
+
+unaryOperation(var,op,e1) ::= "<assign(var,[op,\" \",e2])>"
+
+point(x,y) ::= "array([<x>,<y>])"
+
+array(elem) ::= <<
+[<if(elem)><elem; separator=","><endif>]
+>>
+
+
+state(label,accepting,initial) ::= "State(<label> <if(accepting)>,<accepting><endif><if(initial)>,<initial><endif>)"
+
+transition(label,stateStart,stateEnd) ::= "Transition(<label>,<stateStart>,<stateEnd>)"
+
+automaton(name,state,transition) ::= "Automaton(<name>,<array(state)>,<array(transitions)>)"
+
+view(automaton,placementStates,placementTransitions) ::= "View(<automaton>,<placementStates>,<placementTransitions>)"
+
+viewPort(view,cornerBottom,cornerTop) ::= "ViewPort(<view>,<cornerBottom>,<cornerTop>)"
+
+animation(viewport) ::= "Animation(<array(viewport)>)"
+
+play(animation) :: = "<animation>.play()"

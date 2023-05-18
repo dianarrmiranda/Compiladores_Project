@@ -1,10 +1,11 @@
-
-
 class Animation:
 
-    def __init__(self,viewPort):
+    def __init__(self,viewPorts):
         
-        self.viewPort = viewPort
+        self.viewPorts = viewPorts
+
+    def play(self):
+        pass
 
 class ViewPort:
 
@@ -41,9 +42,9 @@ class Automaton:
 
 class State:
 
-    def __init__(self, name , accepting = False , initial = False):
+    def __init__(self, label , accepting = False , initial = False):
         
-        self.name = name
+        self.label = label
 
         self.accepting = accepting
 
@@ -52,7 +53,7 @@ class State:
 
 class Transition:
 
-    def __init__(self,label,points,stateStart,stateEnd):
+    def __init__(self,label,stateStart,stateEnd):
 
         # Label on transition 
         self.label = label
