@@ -103,18 +103,24 @@ public class compilerSimple extends advBaseVisitor<ST> {
       ass.add("value",aut.render());
       res.add("stat",ass.render());
       return res;
+
    }
 
    @Override public ST visitAutomatonFor(advParser.AutomatonForContext ctx) {
-      ST res = templates.getInstanceOf("forIn");
+      ST res = templates.getInstanceOf("stats");
+      ST forV = templates.getInstanceOf("forIn");
+
+      res.add("stat",visit(ctx.expr()));
+
       String loopVar = newVar();
       setVar(ctx.ID().getText(), loopVar);
-      res.add("var",loopVar);
-      res.add("list",decl.get(ctx.expr()).get(0));
+      forV.add("var",loopVar);
+      forV.add("list",decl.get(ctx.expr()).get(0));
 
       for(advParser.AutomatonStatContext c : ctx.automatonStat())
-         res.add("stat", visit(c).render());
+         forV.add("stat", visit(c).render());
 
+      res.add("stat",forV.render());
       return res;
    }
 
@@ -186,7 +192,7 @@ public class compilerSimple extends advBaseVisitor<ST> {
       decl.put(ctx,l);
       res.add("var",var);
       for(TerminalNode n : ctx.SYMBOL())
-         transition.add("label",n.getText().replace('\'','\0'));
+         transition.add("label",n.getText().replace("'",""));
       String startSt = getVar(ctx.ID(0).getText());
       String endSt = getVar(ctx.ID(1).getText());
       transition.add("stateStart",startSt);
@@ -196,9 +202,15 @@ public class compilerSimple extends advBaseVisitor<ST> {
    }
 
    @Override public ST visitViewDef(advParser.ViewDefContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("stats");
+      ST view = templates.getInstanceOf("view");
+
+      String var = newVar();
+      setVar(ctx.ID(0).getText(), var);
+      view.add("name",ctx.ID(0).getText());
+      view.add("automaton",getVar(ctx.ID(1).getText()));
+
+      return res;
    }
 
    @Override public ST visitViewStat(advParser.ViewStatContext ctx) {
@@ -339,100 +351,190 @@ public class compilerSimple extends advBaseVisitor<ST> {
       //return res;
    }
 
-   @Override public ST visitAlgebricOP(advParser.AlgebricOPContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+   @Override public ST visitAlgebricOP(advParser.AlgebricOPContext ctx){
+      ST res = visitChildren(ctx);
+
+      LinkedList<String> l = new LinkedList<>();
+      if(ctx.expr() != null)
+         l = decl.get(ctx.expr());
+
+      if(ctx.decl() != null)
+         l = decl.get(ctx.decl());
+
+      if(ctx.assign() != null)
+         l = decl.get(ctx.assign());
+
+      decl.put(ctx,l);
+
+      return res;
    }
 
    @Override public ST visitMultDivExpr(advParser.MultDivExprContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("binaryOperation");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      return res;
    }
 
    @Override public ST visitAndExpr(advParser.AndExprContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("binaryOperation");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      return res;
    }
 
    @Override public ST visitIDExpr(advParser.IDExprContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("binaryOperation");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      return res;
    }
 
    @Override public ST visitPointExpr(advParser.PointExprContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("binaryOperation");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      return res;
    }
 
    @Override public ST visitUnaryExpr(advParser.UnaryExprContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("binaryOperation");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      return res;
    }
 
    @Override public ST visitParanthesisExpr(advParser.ParanthesisExprContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("binaryOperation");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      return res;
    }
 
    @Override public ST visitOrExpr(advParser.OrExprContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("binaryOperation");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      return res;
    }
 
    @Override public ST visitEqualsExpr(advParser.EqualsExprContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("binaryOperation");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      return res;
    }
 
    @Override public ST visitParanthesisIDExpr(advParser.ParanthesisIDExprContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("binaryOperation");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      return res;
    }
 
    @Override public ST visitNumberExpr(advParser.NumberExprContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("binaryOperation");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      return res;
    }
 
    @Override public ST visitReadExpr(advParser.ReadExprContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("binaryOperation");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      return res;
    }
 
    @Override public ST visitCompareExpr(advParser.CompareExprContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("binaryOperation");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      return res;
    }
 
    @Override public ST visitNotExpr(advParser.NotExprContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("binaryOperation");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      return res;
    }
 
    @Override public ST visitListExpr(advParser.ListExprContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("assign");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      res.add("var",var);
+      res.add("value",visit(ctx.list()).render());
+
+      return res;
    }
 
    @Override public ST visitAddSubExpr(advParser.AddSubExprContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("binaryOperation");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      return res;
    }
 
    @Override public ST visitAssign(advParser.AssignContext ctx) {
@@ -442,9 +544,14 @@ public class compilerSimple extends advBaseVisitor<ST> {
    }
 
    @Override public ST visitList(advParser.ListContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("array");
+
+      for(TerminalNode c : ctx.ID())
+      {
+         res.add("elem", getVar(c.getText()) );
+      }
+
+      return res;
    }
 
    @Override public ST visitPoint(advParser.PointContext ctx) {

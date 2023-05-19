@@ -1,7 +1,7 @@
-module(stat,importS) ::= <<
+module(stat) ::= <<
 from advClasses import *
 from numpy import *
-<stats(importS)>
+# from xAdvInterpreter import *
 
 def main():
     <stats(stat)>
@@ -37,7 +37,7 @@ transition(label,stateStart,stateEnd) ::= <<Transition('<label; separator=",">',
 
 automaton(name,state,transition) ::= "Automaton('<name>',<array(state)>,<array(transition)>)"
 
-view(automaton,state,slocation,transition,tlocation) ::= "View(<automaton>,<map(state,slocation)>,<map(transition,tlocation)>)"
+view(name,automaton) ::= "View('<name>',<automaton>)"
 
 viewPort(view,cornerBottom,cornerTop) ::= "ViewPort(<view>,<cornerBottom>,<cornerTop>)"
 
@@ -47,9 +47,11 @@ play(animation) ::= "<animation>.play()"
 
 setP(var,prop,value) ::= <<<var>.set<prop>('<value; separator=" ">')>>
 
-importS(file) ::= "import <file>"
-
 forIn(var,list,stat) ::= <<
-    for <var> in <list>:
-        <stats(stat)>
+for <var> in <list>:
+    <stats(stat)>
 >>
+
+importS(file) ::= "interpreter=Interpreter(<file>)"
+
+

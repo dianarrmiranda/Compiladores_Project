@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 class Animation:
 
     def __init__(self,viewPorts):
@@ -6,6 +8,12 @@ class Animation:
 
     def play(self):
         pass
+
+    def __str__(self) -> str:
+        return str(self.__dict__)
+    
+    def __repr__(self) -> str:
+        return str(self)
 
 class ViewPort:
 
@@ -17,17 +25,26 @@ class ViewPort:
 
         self.cornerTop = cornerTop
 
+    def __str__(self) -> str:
+        return str(self.__dict__)
+    
+    def __repr__(self) -> str:
+        return str(self)
+
 class View:
 
-    def __init__(self,automaton,placementStates,placementTransitions):
+    def __init__(self,name,automaton):
 
-        # map of { state:(location) }
-        self.placementStates = placementStates
+        self.name = name
 
-        # map of { transition:[points] }
-        self.placementTransitions = placementTransitions
+        # automaton should be a copy of the automaton
+        self.automaton = deepcopy(automaton)  
 
-        self.automaton = automaton  
+    def __str__(self) -> str:
+        return str(self.__dict__)
+    
+    def __repr__(self) -> str:
+        return str(self)
 
 class Automaton:
 
@@ -37,7 +54,13 @@ class Automaton:
 
         self.states=states
 
-        self.transtions=transitions
+        self.transitions=transitions
+    
+    def __str__(self) -> str:
+        return str(self.__dict__)
+    
+    def __repr__(self) -> str:
+        return str(self)
 
 
 class State:
@@ -50,6 +73,17 @@ class State:
 
         self.initial = initial
 
+    def setaccepting(self,val):
+        self.accepting = val
+
+    def setinitial(self,val):
+        self.initial = val
+
+    def __str__(self) -> str:
+        return str(self.__dict__)
+    
+    def __repr__(self) -> str:
+        return str(self)
 
 class Transition:
 
@@ -63,3 +97,23 @@ class Transition:
 
         # End State
         self.stateEnd = stateEnd
+
+        self.alignlabel = 'middle'
+
+    def setalignlabel(self,val):
+        self.alignlabel = val
+
+    def __str__(self) -> str:
+        return str(self.__dict__)
+    
+    def __repr__(self) -> str:
+        return str(self)
+    
+
+v1 = State('A')
+v2 = State('B')
+v1.setinitial('true')
+v2.setaccepting('true')
+v3 = Transition('a,b',v1,v2)
+v4 = Transition('a,b,c',v1,v1)
+v0 = Automaton('a1',[v1,v2],[v3,v4])
