@@ -13,8 +13,12 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    protected static final Type COMPLETE_DFA_TYPE = new CompleteDFAType();
    protected static final Type AUTOMATON_TYPE = new AutomatonType();
    protected static final Type STATE_TYPE = new StateType();
+   protected static final Type STRING_TYPE = new StringType();
+   protected static final Type POINT_TYPE = new PointType();
+   protected static final Type NUMBER_TYPE = new NumberType();
+
    // ParseTreeProperty usada para passar os simbolos de alphabetElement para alphabetDef,
-   // é capaz de ser boa ideia mudar isto, está ineficiente
+   // é capaz de ser boa ideia mudar isto, está ineficiente (mas funciona)
    private ParseTreeProperty<ArrayList<Character>> alphabetValues = new ParseTreeProperty<>();
    private ParseTreeProperty<String> valuesToString = new ParseTreeProperty<>();
    // alphabetChars vai ter os carateres do alfabeto
@@ -24,8 +28,13 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    private int numInitialStates = 0;
    private int numAcceptingStates = 0;
 
-
    @Override public Boolean visitProgram(advParser.ProgramContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitStat(advParser.StatContext ctx) {
       Boolean res = null;
       return visitChildren(ctx);
       //return res;
@@ -85,6 +94,12 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          alphabetValues.put(ctx, new ArrayList<Character>(Arrays.asList(ctx.SYMBOL(0).getText().charAt(1))));
       }
       return res;
+   }
+
+   @Override public Boolean visitAutomatonDef(advParser.AutomatonDefContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
    }
 
    @Override public Boolean visitAutomatonNFADef(advParser.AutomatonNFADefContext ctx) {
@@ -181,17 +196,8 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitAutomatonStat(advParser.AutomatonStatContext ctx) {
       Boolean res = null;
-      if (ctx.automatonFor() != null) {
-         visit(ctx.automatonFor());
-         System.out.println("\n\n Há um for \n\n");
-      } else if (ctx.automatonIf() != null)
-         visit(ctx.automatonIf());
-      else if (ctx.automatonWhile() != null)
-         visit(ctx.automatonWhile());
-      else if (ctx.propertiesDef() != null)
-         visit(ctx.propertiesDef());
-      
-      return res;
+      return visitChildren(ctx);
+      //return res;
    }
 
    @Override public Boolean visitAutomatonFor(advParser.AutomatonForContext ctx) {
@@ -223,19 +229,26 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    // TODO: expr tem de ser boolean ofc
    @Override public Boolean visitAutomatonWhile(advParser.AutomatonWhileContext ctx) {
-      Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
-   }
-
-   @Override public Boolean visitAutomatonIf(advParser.AutomatonIfContext ctx) {
-      Boolean res = null;
-      // expr em automatonIf tem de ser uma expressão booleana
-      visit(ctx.expr());
+      Boolean res =  visit(ctx.expr()); // true se for booleana
+      if (!res) System.err.println("Invalid boolean expression in the \"while\" statement inside the automaton definition.");
+      for (int i = 0; i < ctx.automatonStat().size(); i++) {
+         visit(ctx.automatonStat(i));
+      }
+      
       return res;
    }
 
-   // TODO: quando verifico se o state já existe, devo verificar tambem na globalsymboltable
+   @Override public Boolean visitAutomatonIf(advParser.AutomatonIfContext ctx) {
+      Boolean res =  visit(ctx.expr()); // true se for booleana
+      if (!res) System.err.println("Invalid boolean expression in the \"if\" statement inside the automaton definition.");
+      for (int i = 0; i < ctx.automatonStat().size(); i++) {
+         visit(ctx.automatonStat(i));
+      }
+      
+      return res;
+   }
+
+   // TODO: quando verifico se o state já existe, nao sei se o scope deve ser global ou apenas local ao automato
    @Override public Boolean visitStateDef(advParser.StateDefContext ctx) {
       Boolean res = true;
       String currId;
@@ -248,15 +261,14 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
             System.err.printf("Duplicate state -  \"%s\"\n", currId);
          } else
             currentSymbolTable.putSymbol(currId, new Symbol(STATE_TYPE));
+      }
+      return res;
    }
-   return res;
-}
 
-   // TODO: mudar containsSymbol para lookup
+   // TODO: mudar containsSymbol para findSymbol
    @Override public Boolean visitPropertiesDef(advParser.PropertiesDefContext ctx) {
       Boolean res = null;
       String stateID = ctx.ID().getText();
-      System.out.println("State id in propertiesDef: " + stateID);
       if (!currentSymbolTable.containsSymbol(ctx.ID().getText())) {
          System.err.printf("Can't define property for state \"%s\". Symbol not found.\n", stateID);
          ErrorHandling.registerError();
@@ -281,9 +293,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       } else if (ctx.Number() != null) {
          propertyValue = propertyValue + ctx.Number().getText();
       }
-      //System.err.println("Property key: "  + propertyKey);
-      //System.err.println("Property Value: " + propertyValue);
-
       if (propertyKey.equals("initial"))  // true ou false
       {
          if (!propertyValue.equals("true ") && !propertyValue.equals("false ")) {
@@ -305,19 +314,19 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          }
       } else if (propertyKey.equals("align")) {
          if (validAlignProperty(propertyValue)) {
-            System.err.println("Invalid property value for \"" + propertyKey + "\" as propertyKey");
+            System.err.printf("Invalid property value for \"%s\" as propertyKey - \"%s\"\n", propertyKey, propertyValue);
             ErrorHandling.registerError();
          } 
 
       } else if (propertyKey.equals("slope")) {
          // Tem de ser um valor numerico (mas não sei se inclui 0)
          if (!propertyValue.matches("[1-9][0-9]*")) {
-            System.err.println("Invalid property value for \"" + propertyKey + "\" as propertyKey");
+            System.err.printf("Invalid property value for \"%s\" as propertyKey - \"%s\"\n", propertyKey, propertyValue);
             ErrorHandling.registerError();
          } 
       } else if (propertyKey.equals("highlighted")) {
          if (!propertyValue.equals("true ") && !propertyValue.equals("false ")) {
-            System.err.println("Invalid property value for \"" + propertyKey + "\" as propertyKey");
+            System.err.printf("Invalid property value for \"%s\" as propertyKey - \"%s\"\n", propertyKey, propertyValue);
             ErrorHandling.registerError();
          } 
       }
@@ -365,7 +374,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       return res;
    }
 
-
    @Override public Boolean visitViewDef(advParser.ViewDefContext ctx) {
       Boolean res = null;
       String viewID = ctx.ID(0).getText();
@@ -388,7 +396,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       return res;
    }
 
-
    @Override public Boolean visitViewStat(advParser.ViewStatContext ctx) {
       Boolean res = null;
       return visitChildren(ctx);
@@ -396,6 +403,18 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    }
 
    @Override public Boolean visitViewFor(advParser.ViewForContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitViewWhile(advParser.ViewWhileContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
+   @Override public Boolean visitViewIf(advParser.ViewIfContext ctx) {
       Boolean res = null;
       return visitChildren(ctx);
       //return res;
@@ -521,29 +540,41 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       //return res;
    }
 
-   @Override public Boolean visitAndExpr(advParser.AndExprContext ctx) {
-      Boolean res = null;
-      // VERIFICAR QUE ctx.expr(0) e ctx.expr(1) são boolean tambem
-      // TODO: problema -> expr pode derivar em exprs infinitamente e têm de ser todos boolean
-      // ou seja, provavelmente tenho de usar os returns
-
-      //return res;
-   }
-
    @Override public Boolean visitMultDivExpr(advParser.MultDivExprContext ctx) {
       Boolean res = null;
       return visitChildren(ctx);
       //return res;
    }
 
+   @Override public Boolean visitAndExpr(advParser.AndExprContext ctx) {
+      Boolean res = false;
+      Boolean expr0 = visit(ctx.expr(0));
+      Boolean expr1 = visit(ctx.expr(1));
+      // devolve true se for uma expressão "OR" válida, com 2 expressões booleanas
+      if (expr0 != null && expr1 != null && expr0 && expr1) res = true;
+      
+      return res;
+   }
+
    @Override public Boolean visitIDExpr(advParser.IDExprContext ctx) {
       Boolean res = null;
+      Symbol idSymbol = currentSymbolTable.findSymbol(ctx.ID().getText());
+      if (idSymbol != null)
+      {
+         if (idSymbol.type() == POINT_TYPE)
+            valuesToString.put(ctx, "point");
+         else if (idSymbol.type() == NUMBER_TYPE)
+            valuesToString.put(ctx, "number");
+         else if (idSymbol.type() == STRING_TYPE)
+            valuesToString.put(ctx, "string");
+      }
       return visitChildren(ctx);
       //return res;
    }
 
    @Override public Boolean visitPointExpr(advParser.PointExprContext ctx) {
       Boolean res = null;
+      valuesToString.put(ctx, "point");
       return visitChildren(ctx);
       //return res;
    }
@@ -561,27 +592,26 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    }
 
    @Override public Boolean visitOrExpr(advParser.OrExprContext ctx) {
-      Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
-   }
-
-   @Override public Boolean visitBiggerOrEqualExpr(advParser.BiggerOrEqualExprContext ctx) {
-      Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
-   }
-
-   @Override public Boolean visitSmallerExpr(advParser.SmallerExprContext ctx) {
-      Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      Boolean res = false;
+      Boolean expr0 = visit(ctx.expr(0));
+      Boolean expr1 = visit(ctx.expr(1));
+      // devolve true se for uma expressão "OR" válida, com 2 expressões booleanas
+      if (expr0 != null && expr1 != null && expr0 && expr1) res = true;
+      
+      return res;
    }
 
    @Override public Boolean visitEqualsExpr(advParser.EqualsExprContext ctx) {
-      Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      Boolean res = false;
+      visit(ctx.expr(0));
+      visit(ctx.expr(1));
+      String leftExpr = valuesToString.get(ctx.expr(0));
+      String rightExpr = valuesToString.get(ctx.expr(1));
+      // nesta linha verifico se a expr da esquerda e a expr da direita são validas,
+      // e caso sejam, vejo se são do mesmo type, que é o que valuesToString tem
+      // ou seja, apenas é valido fazer, por exemplo, POINT > POINT, ou NUMBER > NUMBER
+      if (leftExpr != null && rightExpr != null && leftExpr.equals(rightExpr)) res = true;
+      return res;
    }
 
    @Override public Boolean visitParanthesisIDExpr(advParser.ParanthesisIDExprContext ctx) {
@@ -592,6 +622,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitNumberExpr(advParser.NumberExprContext ctx) {
       Boolean res = null;
+      valuesToString.put(ctx, "number");
       return visitChildren(ctx);
       //return res;
    }
@@ -602,22 +633,25 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       //return res;
    }
 
-   @Override public Boolean visitBiggerExpr(advParser.BiggerExprContext ctx) {
-      Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+   @Override public Boolean visitCompareExpr(advParser.CompareExprContext ctx) {
+      Boolean res = false;
+      visit(ctx.expr(0));
+      visit(ctx.expr(1));
+      String leftExpr = valuesToString.get(ctx.expr(0));
+      String rightExpr = valuesToString.get(ctx.expr(1));
+      // nesta linha verifico se a expr da esquerda e a expr da direita são validas,
+      // e caso sejam, vejo se são do mesmo type, que é o que valuesToString tem
+      // ou seja, apenas é valido fazer, por exemplo, POINT > POINT, ou NUMBER > NUMBER
+      if (leftExpr != null && rightExpr != null && leftExpr.equals(rightExpr)) res = true;
+      return res;
    }
 
-   @Override public Boolean visitSmallerOrEqualExpr(advParser.SmallerOrEqualExprContext ctx) {
-      Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
-   }
-
+   // Devolve true se for tiver uma expressão booleana e false se não
    @Override public Boolean visitNotExpr(advParser.NotExprContext ctx) {
-      Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      Boolean res = false; // devolve true se for booleana (porque eu decidi assim)
+      Boolean expr = visit(ctx.expr());
+      if (expr != null && expr) res = true;
+      return res;
    }
 
    @Override public Boolean visitListExpr(advParser.ListExprContext ctx) {
@@ -625,8 +659,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
       // USADO NO AUTOMATONFOR para verificar se Expr é uma lista
       valuesToString.put(ctx, "list");
-      return visitChidren(ctx);
-      //return res;
+      return res;
    }
 
    @Override public Boolean visitAddSubExpr(advParser.AddSubExprContext ctx) {
@@ -682,7 +715,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       return visitChildren(ctx);
       //return res;
    }
-
    public static boolean validAlignProperty(String property)
    {
       List<String> possibleProperties = new ArrayList<>(Arrays.asList(
@@ -707,7 +739,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          "lesser",
          "greater",
          "greater or equal",
-         "equals",
+         "equals"
          ));
       return possibleProperties.contains(property);
    }

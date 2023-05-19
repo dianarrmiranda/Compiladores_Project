@@ -23,6 +23,9 @@ public class SymbolTable {
         return symbolTable.containsKey(symbolName);
     }
 
+    public void removeSymbol(String symbolName) {
+        symbolTable.remove(symbolName);
+    }
     /**
      * 
      * @param symbolName nome do simbolo a dar lookup
