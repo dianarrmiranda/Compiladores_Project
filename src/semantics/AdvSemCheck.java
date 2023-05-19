@@ -27,6 +27,14 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    private SymbolTable currentSymbolTable = globalSymbolTable;
    private int numInitialStates = 0;
    private int numAcceptingStates = 0;
+   // type do automato a ser definido (preciso disto nas transições por causa das condições DFA/NFA,etc)
+   private Type currAutomatonType;     
+   // TODO: verificar se os estados a ser usados são validos para o automato ATUAL
+   // para cada automato, ter a lista das transições
+   private Map <String, Transitions> automatonsTransitions = new HashMap<>();
+   // que automato é que está a ser usado agora
+   private String currentAutomatonString;
+
 
    @Override public Boolean visitProgram(advParser.ProgramContext ctx) {
       Boolean res = null;
@@ -108,14 +116,15 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       numAcceptingStates = 0;
       int i;
       Type automatonType = NFA_TYPE;
+      currAutomatonType = NFA_TYPE;
 
-      String symbolName = ctx.ID().getText();
+      String automaton_symbolName = ctx.ID().getText();
       // Verificar se automato com este ID já foi definido, se foi, então houve erro
-      if (globalSymbolTable.containsSymbol(symbolName)) {
+      if (globalSymbolTable.containsSymbol(automaton_symbolName)) {
          ErrorHandling.registerError();
          res = false;
       } else 
-         globalSymbolTable.putSymbol(symbolName, new Symbol(automatonType));
+         globalSymbolTable.putSymbol(automaton_symbolName, new Symbol(automatonType));
 
       // Agora, verificar stateDefs
       currentSymbolTable = new SymbolTable(globalSymbolTable);
@@ -131,6 +140,10 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          visit(ctx.automatonStat(i));
 
       }
+      // Adicionar objeto transitions a automatonsTransitions para este automato antes de visitar transitionDef
+      automatonsTransitions.put(automaton_symbolName, new Transitions());
+      currentAutomatonString = automaton_symbolName;
+      
       visit(ctx.transitionDef());
 
       if (numAcceptingStates == 0) {
@@ -154,16 +167,19 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       Type automatonType;
       if (ctx.complete != null) {
          automatonType = COMPLETE_DFA_TYPE;
-      } else
+         currAutomatonType = COMPLETE_DFA_TYPE;
+      } else {
          automatonType = DFA_TYPE;
+         currAutomatonType = DFA_TYPE;
+      }
 
-      String symbolName = ctx.ID().getText();
+      String automaton_symbolName = ctx.ID().getText();
       // Verificar se automato com este ID já foi definido, se foi, então houve erro
-      if (globalSymbolTable.containsSymbol(symbolName)) {
+      if (globalSymbolTable.containsSymbol(automaton_symbolName)) {
          ErrorHandling.registerError();
          res = false;
       } else 
-         globalSymbolTable.putSymbol(symbolName, new Symbol(automatonType));
+         globalSymbolTable.putSymbol(automaton_symbolName, new Symbol(automatonType));
 
       // Agora, verificar stateDefs
       currentSymbolTable = new SymbolTable(globalSymbolTable);
@@ -179,6 +195,10 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          visit(ctx.automatonStat(i));
 
       }
+      // Adicionar objeto transitions a automatonsTransitions para este automato antes de visitar transitionDef
+      automatonsTransitions.put(automaton_symbolName, new Transitions());
+      currentAutomatonString = automaton_symbolName;
+
       visit(ctx.transitionDef());
 
       if (numAcceptingStates == 0) {
@@ -199,7 +219,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       return visitChildren(ctx);
       //return res;
    }
-
+   // TODO: também é possivel ter um "for i in word" em que word é uma string (lista de chars)
    @Override public Boolean visitAutomatonFor(advParser.AutomatonForContext ctx) {
       Boolean res = null;
       // O ID do for apenas existe enquanto o for existir
@@ -340,12 +360,39 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       {
          visit(ctx.transitionElement(i));
       }
+      // Depois de adicionar todas as transições definidas, verificar se cumprem condições do type
+      Transitions transitions = automatonsTransitions.get(currentAutomatonString);
+      if (currAutomatonType == DFA_TYPE) {
+         if (!transitions.isDFAValid())
+         {
+            ErrorHandling.registerError();
+            System.out.println("Invalid DFA Transitions!");
+         }
+
+      } else if (currAutomatonType == NFA_TYPE) {
+         if (!transitions.isNFAValid())
+         {
+            ErrorHandling.registerError();
+            System.out.println("Invalid NFA Transitions!");
+         }
+
+      } else if (currAutomatonType == COMPLETE_DFA_TYPE) {
+         if (!transitions.isCompleteDFAValid(alphabetChars.size()))
+         {
+            ErrorHandling.registerError();
+            System.out.println("Invalid Complete DFA Transitions!");
+         }
+      }
+      
       return res;
    }
 
    // TODO: Condições de NFA/DFA/Complete DFA (em termos de aparecer simbolos repetidos e etc)
    @Override public Boolean visitTransitionElement(advParser.TransitionElementContext ctx) {
       Boolean res = null;
+      System.out.println("Going to get transitions. currentAutomatonString: " + currentAutomatonString);
+      Transitions transitions = automatonsTransitions.get(currentAutomatonString);
+
       String fromId = ctx.ID(0).getText();
       String toId = ctx.ID(1).getText();
       Character curr_alph_symbol;
@@ -369,8 +416,17 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          if (!alphabetChars.contains(curr_alph_symbol)) {
             ErrorHandling.registerError();
             System.err.printf("\"%s\" not found in alphabet.\n", curr_alph_symbol);
-         }        
+         } else {
+            System.out.printf("\n\nGOING TO ADD TRANSITION: %s -> '%c' -> %s\n\n", fromId, curr_alph_symbol, toId);
+            if (!transitions.addTransition(fromId, toId, curr_alph_symbol)) {
+               System.err.printf("Duplicate transition: %s -> '%c' -> %s.\n", fromId, curr_alph_symbol, toId);
+            }
+            System.out.println("Transitions : "+ transitions);
+         }  
       }
+      
+      
+      
       return res;
    }
 
@@ -388,14 +444,17 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       if (automatonSymbol == null) {
          System.err.printf("Automaton ID not found - \"%d\"\n", automatonID);
          ErrorHandling.registerError();
-      }
-      if (automatonSymbol.type().subtype(AUTOMATON_TYPE)) {
+         
+      } else if (automatonSymbol.type().subtype(AUTOMATON_TYPE)) {
          System.err.printf("Invalid type for automaton given.\n");
          ErrorHandling.registerError();
+      } else {
+         currentAutomatonString = automatonID;
       }
+      
       return res;
    }
-
+   // TODO: lidar com algebric OP aqui dentro
    @Override public Boolean visitViewStat(advParser.ViewStatContext ctx) {
       Boolean res = null;
       return visitChildren(ctx);
@@ -404,20 +463,49 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitViewFor(advParser.ViewForContext ctx) {
       Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      // O ID do for apenas existe enquanto o for existir
+      String forVarID = ctx.ID().getText();
+      // TODO: Aqui não tenho a certeza se o type dos elementos da lista é obrigatoriamente estados
+      // para já, vou assumir que os elementos da lista são states
+      currentSymbolTable.putSymbol(forVarID, new Symbol(STATE_TYPE));
+      visit(ctx.expr());
+      // Verificar se o expr devolve uma lista
+      String typeExpr = valuesToString.get(ctx.expr());
+      if (!typeExpr.equals("list"))
+      {
+         System.err.printf("Invalid type of expression in viewFor. Correct use -> for [id] in [list]\n");
+         ErrorHandling.registerError();
+      }
+      // Depois disto, chamar os automatonStats
+      if (ctx.viewStat().size() == 1)
+      {
+         visit(ctx.viewStat(0));
+      } else
+         for (int i = 0; i < ctx.viewStat().size(); i++) {
+            visit(ctx.viewStat(i));
+      }
+      currentSymbolTable.removeSymbol(forVarID);
+      return res;
    }
 
    @Override public Boolean visitViewWhile(advParser.ViewWhileContext ctx) {
-      Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      Boolean res =  visit(ctx.expr()); // true se for booleana
+      if (!res) System.err.println("Invalid boolean expression in the \"while\" statement inside the view definition.");
+      for (int i = 0; i < ctx.viewStat().size(); i++) {
+         visit(ctx.viewStat(i));
+      }
+      
+      return res;
    }
 
    @Override public Boolean visitViewIf(advParser.ViewIfContext ctx) {
-      Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      Boolean res =  visit(ctx.expr()); // true se for booleana
+      if (!res) System.err.println("Invalid boolean expression in the \"if\" statement inside the view definition.");
+      for (int i = 0; i < ctx.viewStat().size(); i++) {
+         visit(ctx.viewStat(i));
+      }
+      
+      return res;
    }
 
    @Override public Boolean visitTransitionRedefine(advParser.TransitionRedefineContext ctx) {
@@ -452,8 +540,39 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitPlaceElement(advParser.PlaceElementContext ctx) {
       Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      // Verificar que ID existe e é um state
+      // TODO: cuidado com o scope, symbol table 
+      String exprType;
+
+      if (ctx.ID() != null) {    // ID at expr
+         String stateID = ctx.ID().getText();
+         Symbol stateSymbol = currentSymbolTable.findSymbol(stateID);
+         if (stateSymbol == null || stateSymbol.type() != STATE_TYPE)
+         {
+            ErrorHandling.registerError();
+            System.err.printf("Invalid state \"%s\" on the 'place' statement inside the view definition.\n", stateID);
+         }
+
+         visit(ctx.expr());
+         // quando eu visito points/numbers/strings, meto-los na 
+         // valuesToString, para saber que type visitei
+         exprType = valuesToString.get(ctx.expr());
+         if (exprType != null && !exprType.equals("point"))
+         {
+            ErrorHandling.registerError();
+            System.err.printf("Invalid expression while trying to place state \"%s\": Must be a point.\n", stateID);
+         }
+      } else {    // transitionLabelAlter at expr
+         visit(ctx.transitionLabelAlter());
+         visit(ctx.expr());
+         exprType = valuesToString.get(ctx.expr());
+         if (exprType != null && !exprType.equals("point"))
+         {
+            ErrorHandling.registerError();
+            System.err.printf("Invalid expression while trying to place the label of a state.\n");
+         }
+      }
+      return res;
    }
 
    @Override public Boolean visitGridDef(advParser.GridDefContext ctx) {
