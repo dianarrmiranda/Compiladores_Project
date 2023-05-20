@@ -47,7 +47,7 @@ play(animation) ::= "<animation>.play()"
 
 setP(var,prop,value) ::= <<<var>.set<prop>('<value; separator=" ">')>>
 
-importS(file) ::= "impor <file>"
+importS(file) ::= "import <file>"
 
 forIn(var,list,stat) :: = <<
     for <var> in <list>:
