@@ -288,6 +288,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    @Override public Boolean visitPropertiesDef(advParser.PropertiesDefContext ctx) {
       Boolean res = null;
       String stateID = ctx.ID().getText();
+      String propertyKey;
       if (!currentSymbolTable.containsSymbol(ctx.ID().getText())) {
          System.err.printf("Can't define property for state \"%s\". Symbol not found.\n", stateID);
          ErrorHandling.registerError();
@@ -295,7 +296,15 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          for (int i = 0; i < ctx.propertyElement().size(); i++)
          {
             visit(ctx.propertyElement(i));
+            propertyKey = valuesToString.get(ctx.propertyElement(i));
+            // TODO: será só isto??
+            if (!propertyKey.equals("initial") && !propertyKey.equals("accepting"))
+            {
+               ErrorHandling.registerError();
+               System.err.printf("Invalid property key for state \"%s\", must be either 'accepting' or 'initial'.\n", stateID);
+            }
          }
+         
       }
       return res;
    }
@@ -324,6 +333,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
                System.err.println("Too many initial states, only 1 may be allowed.");
             }
          }
+         valuesToString.put(ctx, "initial");
       } else if (propertyKey.equals("accepting")) {
          if (!propertyValue.equals("true ") && !propertyValue.equals("false ")) {
             System.err.printf("Invalid property value for \"%s\" as propertyKey - \"%s\"\n", propertyKey, propertyValue);
@@ -331,23 +341,28 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          } else {
             numAcceptingStates++;
          }
+         valuesToString.put(ctx, "accepting");
+
       } else if (propertyKey.equals("align")) {
          if (validAlignProperty(propertyValue)) {
             System.err.printf("Invalid property value for \"%s\" as propertyKey - \"%s\"\n", propertyKey, propertyValue);
             ErrorHandling.registerError();
          } 
-
+         valuesToString.put(ctx, "align");
       } else if (propertyKey.equals("slope")) {
          // Tem de ser um valor numerico (mas não sei se inclui 0)
          if (!propertyValue.matches("[1-9][0-9]*")) {
             System.err.printf("Invalid property value for \"%s\" as propertyKey - \"%s\"\n", propertyKey, propertyValue);
             ErrorHandling.registerError();
          } 
+         valuesToString.put(ctx, "slope");
+
       } else if (propertyKey.equals("highlighted")) {
          if (!propertyValue.equals("true ") && !propertyValue.equals("false ")) {
             System.err.printf("Invalid property value for \"%s\" as propertyKey - \"%s\"\n", propertyKey, propertyValue);
             ErrorHandling.registerError();
          } 
+         valuesToString.put(ctx, "highlighted");
       }
       return res;
    }
@@ -450,7 +465,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       }
 
       // apenas correr o resto do codigo da view se for valido
-      if (!currentAutomatonString.equals(""))
+      if (!currentAutomatonString.isEmpty())
          visitChildren(ctx);
       return res;
    }
@@ -516,15 +531,44 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    }
 
    @Override public Boolean visitTransitionRedefine(advParser.TransitionRedefineContext ctx) {
-      Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      Boolean res = true;
+      if (ctx.transition() != null) { // transition as transition point 
+         String transitionText = ctx.transition().getText();
+         if (!visit(ctx.transition())) {
+            System.err.printf("Invalid transition '%s' on transition redefinition statement. It doesn't exist for automaton \"%s\".\n", transitionText, currentAutomatonString);
+            ErrorHandling.registerError();
+            res = false;
+         } else {
+            if 
+         }
+      } else {    // transitionLabelAlter
+         if (!visit(ctx.transitionLabelAlter()))
+            ret = false;
+      }
+      return res;
    }
 
    @Override public Boolean visitTransitionPoint(advParser.TransitionPointContext ctx) {
-      Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      Boolean res = true;
+      visit(ctx.expr());
+      String exprValue, propertyKey;
+      exprValue = valuesToString.get(ctx.expr());
+      if (!exprValue.equals("point"))
+      {
+         ErrorHandling.registerError();
+         System.err.printf("Invalid point in transition redefinition. Must be of 'point' type.\n");
+         ret = false;
+      }
+      if (ctx.propertyElement() != null)
+         for (int i = 0; i < ctx.propertyElement().size() ; i++) {
+            visit(ctx.propertyElement(i));
+            propertyKey = valuesToString.get(ctx.propertyElement(i));
+            if (!propertyKey.equals("align")) {
+               ErrorHandling.registerError();
+               System.err.printf("Invalid property key for show statament. Must be either 'accepting' or 'highlighted'.\n");
+            }
+         }
+      return res;
    }
 
    @Override public Boolean visitTransitionLabelAlter(advParser.TransitionLabelAlterContext ctx) {
@@ -534,6 +578,16 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          System.err.printf("Invalid transition '%s' on transition label placement. It doesn't exist for automaton \"%s\".\n", transitionText, currentAutomatonString);
          ErrorHandling.registerError();
          res = false;
+      }
+      if (ctx.propertyElement() != null)
+      {
+         visit(ctx.propertyElement());
+         if (!valuesToString.get(ctx.propertyElement()).equals("align"))
+         {
+            ErrorHandling.registerError();
+            System.err.printf("Invalid property key for transition \"%s\", must be 'align'.\n", transitionText);
+            res = false;
+         }
       }
       return res;
    }
@@ -595,14 +649,59 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitGridDef(advParser.GridDefContext ctx) {
       Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      String gridID = ctx.ID().getText();
+      if (globalSymbolTable.containsSymbol(gridID))
+      {
+         System.err.printf("ERROR: Cannot define grid '%s'. Variable name taken.\n", gridID);
+         ErrorHandling.registerError();
+      }
+      for (int i = 0; i < ctx.gridOptions().size(); i++) {
+         visit(ctx.gridOptions(i));
+      }
+      return res;
    }
 
    @Override public Boolean visitGridOptions(advParser.GridOptionsContext ctx) {
-      Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      Boolean res = true;
+      String gridProperty = ctx.gridProperties().getText();
+      String gridValue = "";
+      if (ctx.ID() != null) {
+         for (int i = 0; i < ctx.ID().size(); i++)
+         { 
+            gridValue = gridValue + ctx.ID(i).getText() + " ";
+         }
+      } else if (ctx.Number() != null) {
+         gridValue = gridValue + ctx.Number().getText();
+      }
+
+
+      if (gridProperty.equals("step")) {
+         if (ctx.Number() == null) { // tem de ser um numero
+            System.err.printf("ERROR: Invalid grid property value for \"%s\" as propertyKey - \"%s\". Must be a number.\n", gridProperty, gridValue);
+            ErrorHandling.registerError();
+         }
+      } else if (gridProperty.equals("margin")) {
+         if (ctx.Number() == null) { // tem de ser um numero
+            System.err.printf("ERROR: Invalid grid property value for \"%s\" as propertyKey - \"%s\". Must be a number.\n", gridProperty, gridValue);
+            ErrorHandling.registerError();
+         }
+
+      } else if (gridProperty.equals("color")) {
+         if (ctx.ID() == null) { // tem de ser um ID+, que identifica a cor
+            System.err.printf("ERROR: Invalid grid property value for \"%s\" as propertyKey - \"%s\". Must be a color.\n", gridProperty, gridValue);
+            ErrorHandling.registerError();
+         }
+         
+      } else if (gridProperty.equals("line")) {
+         if (!gridValue.equals("solid ") && !gridValue.equals("dotted ") && !gridValue.equals("dashed ")) { // tem de ser um ID+, que identifica a cor
+            System.err.printf("ERROR: Invalid grid property value for \"%s\" as propertyKey - \"%s\". Must be a 'dotted', 'dashed' or 'solid'.\n", gridProperty, gridValue);
+            ErrorHandling.registerError();
+         }
+         
+         
+      }
+
+      return res;
    }
 
    @Override public Boolean visitAnimationDef(advParser.AnimationDefContext ctx) {
@@ -655,8 +754,30 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitViewportInstructionsShowElement(advParser.ViewportInstructionsShowElementContext ctx) {
       Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      String id, propertyKey;
+      // TODO: falta fazer isto da transition
+      if (ctx.transition() != null) {
+         ;
+      } else {       // ID propertyElement*
+         id = ctx.ID().getText();
+         if (currentSymbolTable.findSymbol(id) == null)
+         {
+            System.err.printf("State '%s' not found in the 'show' statement inside viewport.\n", id);
+            ErrorHandling.registerError();
+         } else {
+            for (int i = 0; i < ctx.propertyElement().size(); i++) {
+               visit(ctx.propertyElement(i));
+               propertyKey = valuesToString.get(ctx.propertyElement(i));
+               if (!propertyKey.equals("accepting") && !propertyKey.equals("highlighted")) {
+                  ErrorHandling.registerError();
+                  System.err.printf("Invalid property key for show statament. Must be either 'accepting' or 'highlighted'.\n");
+               }
+            }
+         }
+      }
+
+
+      return res;
    }
 
    @Override public Boolean visitPlayDef(advParser.PlayDefContext ctx) {
