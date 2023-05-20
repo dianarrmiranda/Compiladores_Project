@@ -95,8 +95,7 @@ class State:
         self.pos = val
 
     def getpos(self) -> ndarray:
-        return array([self.px,self.py])
-
+        return self.pos
     def draw(self, img):
         location = tuple(self.pos)
         cv2.circle(img, location, 25, (0, 0, 255), 2)
@@ -123,7 +122,7 @@ class Transition:
 
         self.alignlabel = 'middle'
 
-        self.points = [self.stateStart.pos,self.stateEnd.pos]
+        self.points = []
 
         self.slope= []
 
@@ -169,7 +168,7 @@ class View:
         return self.automaton.getstate(str)
     
     def gettransition(self,str1: str,str2: str) -> Transition:
-        return self.automaton.gettransition(str)    
+        return self.automaton.gettransition(str1,str2)    
 
     def setgrid(self,grid):
         self.grid = grid

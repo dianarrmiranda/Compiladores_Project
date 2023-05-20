@@ -686,7 +686,7 @@ public class compilerSimple extends advBaseVisitor<ST> {
 
       g2.add("var",curView);
       g2.add("prop","state");
-      g2.add("value",ctx.ID().getText());
+      g2.add("value","'"+ctx.ID().getText()+"'");
       g1.add("var",g2.render());
       g1.add("prop","pos");
 
