@@ -17,7 +17,6 @@ public class compilerSimple extends advBaseVisitor<ST> {
    private int numVar=0;
 
    private String newVar() {
-      System.out.println(numVar);
       return "v" + numVar++;
    }
 
@@ -172,9 +171,13 @@ public class compilerSimple extends advBaseVisitor<ST> {
       res.add("var",curElementProp);
       res.add("prop",ctx.propertiesKeys().prop.getText());
 
-      if(ctx.ID()!=null)
+      if(ctx.ID().size()!=0){
+         String r = "'";
          for(TerminalNode n : ctx.ID())
-            res.add("value",n.getText());
+            r+= n.getText()+" ";
+         r+="'";
+         res.add("value",r);
+      }
       else
          res.add("value",ctx.Number().getText());
      
@@ -214,7 +217,6 @@ public class compilerSimple extends advBaseVisitor<ST> {
    private String curView;
 
    @Override public ST visitViewDef(advParser.ViewDefContext ctx) {
-      System.out.println("VistViewDef");
       ST res = templates.getInstanceOf("stats");
       ST ass = templates.getInstanceOf("assign");
       ST view = templates.getInstanceOf("view");
@@ -274,14 +276,17 @@ public class compilerSimple extends advBaseVisitor<ST> {
       String transition = visit(ctx.transition()).render();
 
       for(advParser.TransitionPointContext c: ctx.transitionPoint() ){
-         res.add("stat",visit(c).render());
+         ST r = visit(c);
+         if(r!=null)
+            res.add("stat",r.render());
          ST add = templates.getInstanceOf("add");
          add.add("var",transition);
          add.add("prop","point");
          add.add("value",decl.get(c));
          for( advParser.PropertyElementContext d: c.propertyElement() ){
-            String prop = d.propertiesKeys().prop.getText()+"='";
-            if(d.ID()!=null){
+            String prop = d.propertiesKeys().prop.getText()+"=";
+            if(d.ID().size()!=0){
+               prop += "'";
                for(TerminalNode n : d.ID())
                   prop += n.getText()+" ";
                prop += "'";
@@ -296,11 +301,18 @@ public class compilerSimple extends advBaseVisitor<ST> {
    }
 
    @Override public ST visitTransitionPoint(advParser.TransitionPointContext ctx) {
-      LinkedList<String> l = decl.get(ctx.expr());
+      ST res = templates.getInstanceOf("stats");
 
+      String re = visit(ctx.expr()).render();
+      res.add("stat",re);
+
+      LinkedList<String> l = decl.get(ctx.expr());
       decl.put(ctx,l);
 
-      return visitChildren(ctx);
+      // for(advParser.PropertyElementContext c : ctx.propertyElement())
+      //    res.add("stat",visit(c).render());
+
+      return (re.length()==0)? null : res;
    }
 
    @Override public ST visitTransitionLabelAlter(advParser.TransitionLabelAlterContext ctx) {
@@ -320,13 +332,19 @@ public class compilerSimple extends advBaseVisitor<ST> {
       return res;
    }
 
+   @Override public ST visitTransitionLabelAlterWithComma(advParser.TransitionLabelAlterWithCommaContext ctx) {
+      ST res = visit(ctx.transitionLabelAlter());
+      decl.put(ctx,decl.get(ctx.transitionLabelAlter()));
+      return res;
+   }
+
    @Override public ST visitTransition(advParser.TransitionContext ctx) {
       ST res = templates.getInstanceOf("get");
 
       res.add("var",curView);
       res.add("prop","transition");
-      res.add("value",ctx.ID(0).getText());
-      res.add("value",ctx.ID(1).getText());
+      res.add("value","'"+ctx.ID(0).getText()+"'");
+      res.add("value","'"+ctx.ID(1).getText()+"'");
 
       return res;
    }
@@ -346,11 +364,13 @@ public class compilerSimple extends advBaseVisitor<ST> {
       ST set = templates.getInstanceOf("setP");
       ST state = templates.getInstanceOf("get");
 
-      res.add("stat",visit(ctx.expr()));
+      String r = visit(ctx.expr()).render();
+      if(r.length()!=0)
+         res.add("stat",r);
 
       state.add("var",curView);
       state.add("prop","state");
-      state.add("value",ctx.ID().getText());
+      state.add("value","'"+ctx.ID().getText()+"'");
 
       set.add("var",state.render());
       set.add("prop","pos");
@@ -362,13 +382,20 @@ public class compilerSimple extends advBaseVisitor<ST> {
    }
 
    @Override public ST visitTransitionplaceElement(advParser.TransitionplaceElementContext ctx) {
-      ST res = templates.getInstanceOf("setP");
-   
-      visitChildren(ctx);
+      ST res = templates.getInstanceOf("stats");
 
-      res.add("var",decl.get(ctx.transitionLabelAlter()));
-      res.add("prop","pos");
-      res.add("value",decl.get(ctx.expr()));
+      ST set = templates.getInstanceOf("setP");
+   
+      res.add("stat",visit(ctx.transitionLabelAlter()).render());
+      String r = visit(ctx.expr()).render();
+      if(r.length()!=0)
+         res.add("stat",r);
+
+      set.add("var",decl.get(ctx.transitionLabelAlter()));
+      set.add("prop","pos");
+      set.add("value",decl.get(ctx.expr()));
+
+      res.add("stat",set.render());
 
       return res;
    }
@@ -401,9 +428,9 @@ public class compilerSimple extends advBaseVisitor<ST> {
       res.add("var",curGrid);
       res.add("prop",ctx.gridProperties().prop.getText());
 
-      if(ctx.ID()!=null)
+      if(ctx.ID().size()!=0)
          for(TerminalNode n : ctx.ID())
-            res.add("value",n.getText());
+            res.add("value","'"+n.getText()+"'");
       else
          res.add("value",ctx.Number().getText());
      
@@ -471,11 +498,24 @@ public class compilerSimple extends advBaseVisitor<ST> {
    }
 
    @Override public ST visitDecl(advParser.DeclContext ctx) {
-      System.out.println("VisitDecl");
-      if(ctx.ID()!=null){
+
+      if(ctx.ID().size()!=0){
          return null;
       }
-      return visitChildren(ctx);
+
+
+      ST res = templates.getInstanceOf("stats");
+
+      LinkedList<String> l = new LinkedList<>();
+
+      for(advParser.AssignContext c : ctx.assign()){
+         res.add("stat",visit(c).render());
+         l.add( decl.get( c ).get(0) );
+      }
+
+      decl.put(ctx,l);
+
+      return res;
    }
 
    @Override public ST visitAlgebricOP(advParser.AlgebricOPContext ctx){
@@ -498,10 +538,6 @@ public class compilerSimple extends advBaseVisitor<ST> {
       }
       
       decl.put(ctx,l);
-      if(res!=null)
-         System.out.println("VISITALGOP-"+res.render());
-      else
-         System.out.println("VISITALGOP");
       return res;
    }
 
@@ -521,7 +557,7 @@ public class compilerSimple extends advBaseVisitor<ST> {
       binOP.add("op",ctx.op.getText());
 
       binOP.add("e1",decl.get(ctx.expr(0)));
-      binOP.add("e2",decl.get(ctx.expr(0)));
+      binOP.add("e2",decl.get(ctx.expr(1)));
 
       res.add("stat",binOP.render());
       return res;
@@ -543,7 +579,7 @@ public class compilerSimple extends advBaseVisitor<ST> {
       binOP.add("op","&");
 
       binOP.add("e1",decl.get(ctx.expr(0)));
-      binOP.add("e2",decl.get(ctx.expr(0)));
+      binOP.add("e2",decl.get(ctx.expr(1)));
 
       res.add("stat",binOP.render());
       return res;
@@ -558,20 +594,10 @@ public class compilerSimple extends advBaseVisitor<ST> {
    }
 
    @Override public ST visitPointExpr(advParser.PointExprContext ctx) {
-      ST res = templates.getInstanceOf("stats");
-      ST ass = templates.getInstanceOf("assign");
+      ST res = visit(ctx.point());
+      
+      decl.put(ctx,decl.get(ctx.point()));
 
-      res.add("stat",visit(ctx.point()).render());
-
-      String var = newVar();
-      LinkedList<String> l = new LinkedList<>();
-      l.add(var);
-      decl.put(ctx,l);
-
-      ass.add("var",var);
-      ass.add("value",decl.get(ctx.point()));
-
-      res.add("stat",ass.render());
       return res;
    }
 
@@ -617,7 +643,7 @@ public class compilerSimple extends advBaseVisitor<ST> {
       binOP.add("op","|");
 
       binOP.add("e1",decl.get(ctx.expr(0)));
-      binOP.add("e2",decl.get(ctx.expr(0)));
+      binOP.add("e2",decl.get(ctx.expr(1)));
 
       res.add("stat",binOP.render());
       return res;
@@ -639,7 +665,7 @@ public class compilerSimple extends advBaseVisitor<ST> {
       binOP.add("op",ctx.op.getText());
 
       binOP.add("e1",decl.get(ctx.expr(0)));
-      binOP.add("e2",decl.get(ctx.expr(0)));
+      binOP.add("e2",decl.get(ctx.expr(1)));
 
       res.add("stat",binOP.render());
       return res;
@@ -715,7 +741,7 @@ public class compilerSimple extends advBaseVisitor<ST> {
       binOP.add("op",ctx.op.getText());
 
       binOP.add("e1",decl.get(ctx.expr(0)));
-      binOP.add("e2",decl.get(ctx.expr(0)));
+      binOP.add("e2",decl.get(ctx.expr(1)));
 
       res.add("stat",binOP.render());
       return res;
@@ -771,17 +797,17 @@ public class compilerSimple extends advBaseVisitor<ST> {
       binOP.add("op",ctx.op.getText());
 
       binOP.add("e1",decl.get(ctx.expr(0)));
-      binOP.add("e2",decl.get(ctx.expr(0)));
+      binOP.add("e2",decl.get(ctx.expr(1)));
 
       res.add("stat",binOP.render());
       return res;
    }
 
    @Override public ST visitAssign(advParser.AssignContext ctx) {
-      System.out.println("VisitAssign");
       ST res = visitChildren(ctx);
-
+      
       decl.put(ctx,decl.get(ctx.expr()));
+      setVar(ctx.ID().getText(), decl.get(ctx.expr()).get(0));
 
       return res;
    }
@@ -797,6 +823,18 @@ public class compilerSimple extends advBaseVisitor<ST> {
       return res;
    }
 
+   @Override public ST visitPoint(advParser.PointContext ctx){
+      ST res = visitChildren(ctx);
+      
+      if(ctx.pointPol()!=null)
+         decl.put(ctx,decl.get(ctx.pointPol()));
+
+      if(ctx.pointRect()!=null)
+         decl.put(ctx,decl.get(ctx.pointRect()));
+
+      return res;
+   }
+
    @Override public ST visitPointRect(advParser.PointRectContext ctx) {
       ST res = templates.getInstanceOf("stats");
       ST point = templates.getInstanceOf("point");
@@ -807,7 +845,17 @@ public class compilerSimple extends advBaseVisitor<ST> {
       point.add("x",decl.get(ctx.expr(0)).get(0));
       point.add("y",decl.get(ctx.expr(1)).get(0));
 
-      res.add("stat",point.render());
+      ST ass = templates.getInstanceOf("assign");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      ass.add("var",var);
+      ass.add("value",point.render());
+
+      res.add("stat",ass.render());
       return res;
    }
 
@@ -823,7 +871,17 @@ public class compilerSimple extends advBaseVisitor<ST> {
       point.add("x",r+"*cos(radians("+degree+"))");
       point.add("y",r+"*sin(radians("+degree+"))");
 
-      res.add("stat",point.render());
+      ST ass = templates.getInstanceOf("assign");
+
+      String var = newVar();
+      LinkedList<String> l = new LinkedList<>();
+      l.add(var);
+      decl.put(ctx,l);
+
+      ass.add("var",var);
+      ass.add("value",point.render());
+
+      res.add("stat",ass.render());
 
       return res;
    }

@@ -34,7 +34,7 @@ transitionDef:     'transition' (transitionElement',')*transitionElement ';';
 transitionElement: ID '->' (SYMBOL',')*SYMBOL '->' ID ;
 
 viewDef: 'view' ID 'of' ID '<<<' (viewStat)* '>>>'; 
-viewStat: (algebricOP| viewFor| placeDef| transitionRedefine|transitionLabelAlter| gridDef|viewIf|viewWhile);
+viewStat: (algebricOP| viewFor| placeDef| transitionRedefine|transitionLabelAlterWithComma| gridDef|viewIf|viewWhile);
 viewFor: 'for' ID 'in' expr viewStat 
        |'for' ID 'in' expr '<<<' viewStat+ '>>>';
 viewWhile:'while' expr 'do' viewStat
@@ -46,6 +46,7 @@ transitionRedefine: transition 'as' transitionPoint '--' (transitionPoint '--')*
 transitionPoint: expr propertyElement*;
 
 transitionLabelAlter: transition '#label' propertyElement*;
+transitionLabelAlterWithComma: transitionLabelAlter ';';
 
 transition: '<'ID','ID'>' ;
 

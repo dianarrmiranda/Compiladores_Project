@@ -28,7 +28,7 @@ array(elem) ::= <<
 >>
 
 map(elem,key) ::= <<
-    {<if(elem)><mapElem(elem,key); separator=","><endif>}
+{<if(elem)><mapElem(elem,key); separator=","><endif>}
 >>
 mapElem(elem,key) ::= "<elem> : <key>"
 
