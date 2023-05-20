@@ -1,6 +1,7 @@
 module(stat) ::= <<
 from advClasses import *
 from numpy import *
+from math import *
 # from xAdvInterpreter import *
 
 def main():
@@ -43,9 +44,17 @@ viewPort(view,cornerBottom,cornerTop) ::= "ViewPort(<view>,<cornerBottom>,<corne
 
 animation(viewport) ::= "Animation(<array(viewport)>)"
 
+grid(widthheigth) ::= "Grid(widthheigth)"
+
 play(animation) ::= "<animation>.play()"
 
-setP(var,prop,value) ::= <<<var>.set<prop>('<value; separator=" ">')>>
+setP(var,prop,value) ::= <<<var>.set<prop>(<value; separator=",">)>>
+
+get(var,prop,value) ::= <<<var>.get<prop>(<value; separator=",">)>>
+
+add(var,prop,value) ::= <<<var>.add<prop>(<value; separator=",">)>>
+
+read(msg) ::= "input(<msg>)"
 
 forIn(var,list,stat) ::= <<
 for <var> in <list>:

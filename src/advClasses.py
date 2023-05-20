@@ -1,10 +1,12 @@
 from copy import deepcopy
+from numpy import array, ndarray
 
 class Animation:
 
     def __init__(self,viewPorts):
         
-        self.viewPorts = viewPorts
+        # create a copy of a viewport
+        self.viewPorts = deepcopy(viewPorts)
 
     def play(self):
         pass
@@ -31,37 +33,27 @@ class ViewPort:
     def __repr__(self) -> str:
         return str(self)
 
-class View:
+class Grid:
 
-    def __init__(self,name,automaton):
+    def __init__(self,widthheigth,step=0.5,margin=0.25,color='gray',line='solid'):
+        self.width = widthheigth[0]
+        self.heigth = widthheigth[1]
+        self.step = step
+        self.margin = margin
+        self.color = color
+        self.line = line
 
-        self.name = name
+    def setstep(self,val):
+        self.step = val
 
-        # automaton should be a copy of the automaton
-        self.automaton = deepcopy(automaton)  
+    def setmargin(self,val):
+        self.margin = val
 
-    def __str__(self) -> str:
-        return str(self.__dict__)
-    
-    def __repr__(self) -> str:
-        return str(self)
+    def setcolor(self,val):
+        self.color = val
 
-class Automaton:
-
-    def __init__(self,name,states,transitions):
-
-        self.name=name
-
-        self.states=states
-
-        self.transitions=transitions
-    
-    def __str__(self) -> str:
-        return str(self.__dict__)
-    
-    def __repr__(self) -> str:
-        return str(self)
-
+    def setline(self,val):
+        self.line = val
 
 class State:
 
@@ -73,11 +65,19 @@ class State:
 
         self.initial = initial
 
-    def setaccepting(self,val):
+        self.pos = array([0,0])
+
+    def setaccepting(self,val) -> None:
         self.accepting = val
 
-    def setinitial(self,val):
+    def setinitial(self,val) -> None:
         self.initial = val
+
+    def setpos(self,val) -> None:
+        self.pos = val
+
+    def getpos(self) -> ndarray:
+        return array([self.px,self.py])
 
     def __str__(self) -> str:
         return str(self.__dict__)
@@ -100,8 +100,21 @@ class Transition:
 
         self.alignlabel = 'middle'
 
-    def setalignlabel(self,val):
+        self.points = [self.stateStart.pos,self.stateEnd.pos]
+
+        self.slope= []
+
+        self.lablepos = array([0,0])
+
+    def setalign(self,val) -> None:
         self.alignlabel = val
+
+    def setpos(self,val) -> None:
+        self.lablepos = val
+
+    def addpoint(self,point,slope=-1) -> None:
+        self.points.insert(-1,point)
+        self.slope.append(slope)
 
     def __str__(self) -> str:
         return str(self.__dict__)
@@ -110,10 +123,54 @@ class Transition:
         return str(self)
     
 
-v1 = State('A')
-v2 = State('B')
-v1.setinitial('true')
-v2.setaccepting('true')
-v3 = Transition('a,b',v1,v2)
-v4 = Transition('a,b,c',v1,v1)
-v0 = Automaton('a1',[v1,v2],[v3,v4])
+class View:
+
+    def __init__(self,name,automaton):
+
+        self.name = name
+
+        # automaton should be a copy of the automaton
+        self.automaton = deepcopy(automaton)  
+
+        self.grid = None
+
+    def getstate(self,str: str) -> State:
+        return self.automaton.getstate(str)
+    
+    def gettransition(self,str1: str,str2: str) -> Transition:
+        return self.automaton.gettransition(str)    
+
+    def setgrid(self,grid):
+        self.grid = grid
+
+    def __str__(self) -> str:
+        return str(self.__dict__)
+    
+    def __repr__(self) -> str:
+        return str(self)
+    
+
+class Automaton:
+
+    def __init__(self,name,states,transitions):
+
+        self.name=name
+
+        self.states=states
+
+        self.transitions=transitions
+    
+    def getstate(self,str: str) -> State:
+        i= list(map(lambda x : x.label,self.states)).index(str) 
+        return self.states[i]
+    
+    def gettransition(self,str1: str,str2: str) -> Transition:
+        i= list(map(lambda x : (x.stateStart.label,x.stateEnd.label),self.transitions)).index((str1,str2)) 
+        return self.transitions[i]
+
+    def __str__(self) -> str:
+        return str(self.__dict__)
+    
+    def __repr__(self) -> str:
+        return str(self)
+
