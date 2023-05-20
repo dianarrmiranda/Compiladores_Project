@@ -1,5 +1,8 @@
+from asyncio import wait
 from copy import deepcopy
 from numpy import array, ndarray
+import cv2
+import numpy as np
 
 class Animation:
 
@@ -9,7 +12,13 @@ class Animation:
         self.viewPorts = deepcopy(viewPorts)
 
     def play(self):
-        pass
+        for viewport in self.viewPorts:
+            viewport.show()
+            self.pause()
+            
+    def pause():
+        wait(1)
+        pass 
 
     def __str__(self) -> str:
         return str(self.__dict__)
@@ -26,6 +35,15 @@ class ViewPort:
         self.cornerBottom = cornerBottom
 
         self.cornerTop = cornerTop
+
+    def show(self):
+        img = np.zeros((500, 500, 3), dtype=np.uint8)
+        self.view.draw(img)
+
+        cv2.imshow('Automaton', img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
 
     def __str__(self) -> str:
         return str(self.__dict__)
@@ -79,6 +97,11 @@ class State:
     def getpos(self) -> ndarray:
         return array([self.px,self.py])
 
+    def draw(self, img):
+        location = tuple(self.pos)
+        cv2.circle(img, location, 25, (0, 0, 255), 2)
+        cv2.putText(img, self.label, location, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+
     def __str__(self) -> str:
         return str(self.__dict__)
     
@@ -116,6 +139,14 @@ class Transition:
         self.points.insert(-1,point)
         self.slope.append(slope)
 
+    def draw(self, img):
+        start_location = self.points[0]
+        end_location = self.points[1]
+        cv2.arrowedLine(img, start_location, end_location, (255, 0, 0), 2, cv2.LINE_AA, 0, 0.2)
+
+        label_position = ((start_location[0] + end_location[0]) // 2, (start_location[1] + end_location[1]) // 2)
+        cv2.putText(img, self.label, label_position, cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+
     def __str__(self) -> str:
         return str(self.__dict__)
     
@@ -142,6 +173,9 @@ class View:
 
     def setgrid(self,grid):
         self.grid = grid
+    
+    def draw(self, img):
+        self.automaton.draw(img)
 
     def __str__(self) -> str:
         return str(self.__dict__)
@@ -167,6 +201,13 @@ class Automaton:
     def gettransition(self,str1: str,str2: str) -> Transition:
         i= list(map(lambda x : (x.stateStart.label,x.stateEnd.label),self.transitions)).index((str1,str2)) 
         return self.transitions[i]
+
+    def draw(self, img):
+        for state in self.states:
+            state.draw(img)
+
+        for transition in self.transitions:
+            transition.draw(img)
 
     def __str__(self) -> str:
         return str(self.__dict__)

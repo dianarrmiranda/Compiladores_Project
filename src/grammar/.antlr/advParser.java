@@ -1,4 +1,4 @@
-// Generated from c:\Users\Kikom\Desktop\C\PROJ\c2023-adv-02\src\grammar\adv.g4 by ANTLR 4.9.2
+// Generated from /home/jose/Desktop/LEI/2ºano/2ºSemestre/C/Práticas/c2023-adv-02/src/grammar/adv.g4 by ANTLR 4.9.2
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
