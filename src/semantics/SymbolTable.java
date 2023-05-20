@@ -26,12 +26,7 @@ public class SymbolTable {
     public void removeSymbol(String symbolName) {
         symbolTable.remove(symbolName);
     }
-    /**
-     * 
-     * @param symbolName nome do simbolo a dar lookup
-     * @return  simbolo se for encontrado ou null se não encontrar
-     */
-
+ 
     public Symbol findSymbol(String symbolName) {
         SymbolTable currentTable = this;
         while (currentTable != null)

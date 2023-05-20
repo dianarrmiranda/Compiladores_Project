@@ -1,0 +1,28 @@
+// Neste caso, há apenas 2 carateres no alfabeto, 'a' e 'b'
+// Tenho de decidir se, quando meto um carater invalido (como 'c') 
+// nas transições, deve prevenir sequer a analise semantica das transições, tipo ver se é DFA/NFA/CDFA
+alphabet {'a', 'b', 'c'}
+
+complete DFA a2 <<<
+    state A, B, A;
+    A [initial = true];
+    A [accepting = test];
+    C [accepting = true];
+    B [accepting = true];
+    for ar in {{A,B,C}} <<< xd [accepting = true]; dx [accepting = false]; >>> 
+    
+    // BOOLEAN EXPRESSION TESTS
+    while 10 > 20 and 20 < 10 do <<< test [accepting = true];>>>
+
+    if 10 == 20 or 10 != 500 do A [slope = true];
+
+    // erro semantico dentro do while
+    while 10 and 20 > 20 or 10 do <<< test [accepting = true];>>>
+
+    transition 
+        A -> 'a','b' -> B,
+        A -> 'c' -> C,
+        B -> 'a','c' -> A, 
+        B -> 'b' -> C,
+        C -> 'a','b' -> C;
+>>>
