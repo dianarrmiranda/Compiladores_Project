@@ -36,6 +36,16 @@ public class Transitions {
         return false;
     }
 
+    public boolean containsTransition(String from, String to) {
+        boolean ret = false;
+        for (TransitionInstance t : stateSymbol) {
+            if (t.getFrom().equals(from) && t.getTo().equals(to)) {
+                ret = true;
+                break;
+            }
+        }
+        return ret;
+    }
 
     /*
      *     Condições de DFA valid:
