@@ -7,11 +7,14 @@ import java.util.HashMap;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 @SuppressWarnings("CheckReturnValue")
 public class AdvSemCheck extends advBaseVisitor<Boolean> {
-   /* TYPES */
+   /* TYPES */   
    protected static final Type NFA_TYPE = new NFAType();
    protected static final Type DFA_TYPE = new DFAType();
    protected static final Type COMPLETE_DFA_TYPE = new CompleteDFAType();
    protected static final Type AUTOMATON_TYPE = new AutomatonType();
+   protected static final Type VIEW_TYPE = new ViewType();
+   protected static final Type ANIMATION_TYPE = new AnimationType();
+   protected static final Type VIEWPORT_TYPE = new ViewportType();
    protected static final Type STATE_TYPE = new StateType();
    protected static final Type STRING_TYPE = new StringType();
    protected static final Type POINT_TYPE = new PointType();
@@ -34,8 +37,8 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    private Map <String, Transitions> automatonsTransitions = new HashMap<>();
    // que automato é que está a ser usado agora
    private String currentAutomatonString;
-
-
+   
+   
    @Override public Boolean visitProgram(advParser.ProgramContext ctx) {
       Boolean res = null;
       return visitChildren(ctx);
@@ -219,6 +222,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       return visitChildren(ctx);
       //return res;
    }
+
    // TODO: também é possivel ter um "for i in word" em que word é uma string (lista de chars)
    @Override public Boolean visitAutomatonFor(advParser.AutomatonForContext ctx) {
       Boolean res = null;
@@ -256,6 +260,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       
       return res;
    }
+
 
    @Override public Boolean visitAutomatonIf(advParser.AutomatonIfContext ctx) {
       Boolean res =  visit(ctx.expr()); // true se for booleana
@@ -401,6 +406,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       return res;
    }
 
+
    @Override public Boolean visitTransitionElement(advParser.TransitionElementContext ctx) {
       Boolean res = null;
       Transitions transitions = automatonsTransitions.get(currentAutomatonString);
@@ -435,8 +441,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          }  
       }
       
-      
-      
       return res;
    }
 
@@ -449,6 +453,8 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       if (globalSymbolTable.containsSymbol(viewID)) {
          System.err.printf("Invalid ID for view -  Already taken.\n");
          ErrorHandling.registerError();
+      } else {
+         globalSymbolTable.putSymbol(viewID, new Symbol(VIEW_TYPE));
       }
       // Verificar se ID de automato dado existe e está associado a um automato
       if (automatonSymbol == null) {
@@ -469,6 +475,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          visitChildren(ctx);
       return res;
    }
+
    // TODO: lidar com algebric OP aqui dentro
    // TODO: será que vale a pena dar print de erros semanticos se o automato dado na view nao existe?
    @Override public Boolean visitViewStat(advParser.ViewStatContext ctx) {
@@ -592,6 +599,12 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       return res;
    }
 
+   @Override public Boolean visitTransitionLabelAlterWithComma(advParser.TransitionLabelAlterWithCommaContext ctx) {
+      Boolean res = null;
+      return visitChildren(ctx);
+      //return res;
+   }
+
    @Override public Boolean visitTransition(advParser.TransitionContext ctx) {
       Boolean res = false;
       String fromID = ctx.ID(0).getText();
@@ -602,46 +615,50 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       return res;
    }
 
+   
    @Override public Boolean visitPlaceDef(advParser.PlaceDefContext ctx) {
       Boolean res = null;
       return visitChildren(ctx);
       //return res;
    }
 
-   @Override public Boolean visitPlaceElement(advParser.PlaceElementContext ctx) {
+   @Override public Boolean visitIDplaceElement(advParser.IDplaceElementContext ctx) {
       Boolean res = null;
-      // Verificar que ID existe e é um state
+// Verificar que ID existe e é um state
       // TODO: cuidado com o scope, symbol table para encontrar o state 
       String exprType;
 
-      if (ctx.ID() != null) {    // ID at expr
-         String stateID = ctx.ID().getText();
-         Symbol stateSymbol = currentSymbolTable.findSymbol(stateID);
-         if (stateSymbol == null || stateSymbol.type() != STATE_TYPE)
-         {
-            ErrorHandling.registerError();
-            System.err.printf("Invalid state \"%s\" on the 'place' statement inside the view definition.\n", stateID);
-         }
+      String stateID = ctx.ID().getText();
+      Symbol stateSymbol = currentSymbolTable.findSymbol(stateID);
+      if (stateSymbol == null || stateSymbol.type() != STATE_TYPE)
+      {
+         ErrorHandling.registerError();
+         System.err.printf("Invalid state \"%s\" on the 'place' statement inside the view definition.\n", stateID);
+      }
 
+      visit(ctx.expr());
+      // quando eu visito points/numbers/strings, meto-los na 
+      // valuesToString, para saber que type visitei
+      exprType = valuesToString.get(ctx.expr());
+      if (exprType != null && !exprType.equals("point"))
+      {
+         ErrorHandling.registerError();
+         System.err.printf("Invalid expression while trying to place state \"%s\": Must be a point.\n", stateID);
+      }
+   
+
+      return res;
+   }
+
+   @Override public Boolean visitTransitionplaceElement(advParser.TransitionplaceElementContext ctx) {
+      Boolean res = null;
+      if (visit(ctx.transitionLabelAlter())) {
          visit(ctx.expr());
-         // quando eu visito points/numbers/strings, meto-los na 
-         // valuesToString, para saber que type visitei
          exprType = valuesToString.get(ctx.expr());
-         if (exprType != null && !exprType.equals("point"))
+         if (exprType == null || !exprType.equals("point"))
          {
             ErrorHandling.registerError();
-            System.err.printf("Invalid expression while trying to place state \"%s\": Must be a point.\n", stateID);
-         }
-      } else {    // transitionLabelAlter at expr
-         if (visit(ctx.transitionLabelAlter())) {
-            visit(ctx.expr());
-            System.out.println("Cheguei aqui rats");
-            exprType = valuesToString.get(ctx.expr());
-            if (exprType == null || !exprType.equals("point"))
-            {
-               ErrorHandling.registerError();
-               System.err.printf("Invalid expression while trying to place the label of a state.\n");
-            }
+            System.err.printf("Invalid expression while trying to place the label of a state.\n");
          }
       }
       return res;
@@ -706,20 +723,61 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitAnimationDef(advParser.AnimationDefContext ctx) {
       Boolean res = null;
+      String animationID = ctx.ID().getText();
+      if (globalSymbolTable.containsSymbol(animationID))
+      {
+         System.err.printf("Error: Variable name taken on animation definition - \"%s\"\n", animationID);
+         ErrorHandling.registerError();
+      } else {
+         globalSymbolTable.putSymbol(animationID, new Symbol(ANIMATION_TYPE));
+      }
       return visitChildren(ctx);
-      //return res;
    }
 
    @Override public Boolean visitViewportDef(advParser.ViewportDefContext ctx) {
       Boolean res = null;
+      String viewportID = ctx.ID(0).getText();
+      String viewID = ctx.ID(1).getText();
+      Symbol viewSymbol;
+      // TODO: é capaz de ser local ao scope da animation
+      if (globalSymbolTable.containsSymbol(viewportID))
+      {
+         System.err.printf("Error: Variable name taken on viewport definition - \"%s\"\n", animationID);
+         ErrorHandling.registerError();
+      } else {
+         globalSymbolTable.putSymbol(viewportID, new Symbol(VIEWPORT_TYPE));
+      }
+      if (globalSymbolTable.containsSymbol(viewID)) {
+         viewSymbol = globalSymbolTable.findSymbol(viewID);
+         if (viewSymbol.type() != VIEW_TYPE) {
+            System.err.printf("Error: Wrong type for variable \"%s\" in viewport definition. Must be a view.\n", viewID);
+            ErrorHandling.registerError();
+         }
+
+      } else {
+         System.err.printf("Error: View \"%s\" not found in viewport definition.\n", viewID);
+         ErrorHandling.registerError();
+      }
       return visitChildren(ctx);
-      //return res;
    }
 
    @Override public Boolean visitViewportOn(advParser.ViewportOnContext ctx) {
       Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      String viewportID = ctx.ID().getText();
+      Symbol viewportSymbol;
+      if (globalSymbolTable.containsSymbol(viewportID)) {
+         viewportSymbol = globalSymbolTable.findSymbol(viewportID);
+         if (viewportSymbol.type() != VIEWPORT_TYPE) {
+            System.err.printf("Error: Wrong type for variable \"%s\". Must be a viewport.\n", viewID);
+            ErrorHandling.registerError();
+         } else {
+            return visitChildren(ctx);
+         }
+      } else {
+         System.err.printf("Error: View \"%s\" not found in viewport definition.\n", viewID);
+         ErrorHandling.registerError();
+      }
+      return res;
    }
 
    @Override public Boolean visitViewportStat(advParser.ViewportStatContext ctx) {
@@ -782,8 +840,18 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitPlayDef(advParser.PlayDefContext ctx) {
       Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      String animationID = ctx.ID().getText();
+      Symbol animationSymbol = globalSymbolTable.findSymbol(animationID);
+      if (globalSymbolTable.containsSymbol(animationID)) {
+         if (animationSymbol.type() == ANIMATION_TYPE) {
+            System.err.printf("Error: Wrong type for variable \"%s\" in 'play' statement. Must be an animation.\n", animationID);
+            ErrorHandling.registerError();
+         }
+      } else {
+         System.err.printf("Error: Animation \"%s\" not found in 'play' statement.\n", animationID);
+         ErrorHandling.registerError();
+      }
+      return res;
    }
 
    @Override public Boolean visitDecl(advParser.DeclContext ctx) {
@@ -973,6 +1041,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       return visitChildren(ctx);
       //return res;
    }
+   
    public static boolean validAlignProperty(String property)
    {
       List<String> possibleProperties = new ArrayList<>(Arrays.asList(
