@@ -34,7 +34,7 @@ transitionDef:     'transition' (transitionElement',')*transitionElement ';';
 transitionElement: ID '->' (SYMBOL',')*SYMBOL '->' ID ;
 
 viewDef: 'view' ID 'of' ID '<<<' (viewStat)* '>>>'; 
-viewStat: (algebricOP| viewFor| placeDef| transitionRedefine| propertiesDef| gridDef|viewIf|viewWhile);
+viewStat: (algebricOP| viewFor| placeDef| transitionRedefine|transitionLabelAlterWithComma| gridDef|viewIf|viewWhile);
 viewFor: 'for' ID 'in' expr viewStat 
        |'for' ID 'in' expr '<<<' viewStat+ '>>>';
 viewWhile:'while' expr 'do' viewStat
@@ -42,17 +42,17 @@ viewWhile:'while' expr 'do' viewStat
 viewIf:'if' expr 'do' viewStat
           |'if' expr 'do' '<<<'viewStat+'>>>';
 
-transitionRedefine: transition 'as' transitionPoint '--' (transitionPoint '--')* transitionPoint';'
-                  | transitionLabelAlter ';';
+transitionRedefine: transition 'as' transitionPoint '--' (transitionPoint '--')* transitionPoint';';       
 transitionPoint: expr propertyElement*;
 
-transitionLabelAlter: transition '#label' propertyElement?;
+transitionLabelAlter: transition '#label' propertyElement*;
+transitionLabelAlterWithComma: transitionLabelAlter ';';
 
 transition: '<'ID','ID'>' ;
 
 placeDef: 'place' (placeElement',')*placeElement ';';
-placeElement: ID 'at' expr
-            | transitionLabelAlter 'at' expr 
+placeElement: ID 'at' expr #IDplaceElement
+            | transitionLabelAlter 'at' expr #transitionplaceElement
 ;
 
 gridDef: 'grid' ID expr '[' (gridOptions',')*gridOptions ']' ';';
@@ -87,7 +87,7 @@ algebricOP: ( expr | decl | assign ) ';' ;
 
 expr:     op=('+'|'-') expr #UnaryExpr
          |'not' expr #NotExpr
-         | expr op=('*'|'/') expr #MultDivExpr
+         | expr op=('*'|'/'|'%') expr #MultDivExpr
          | expr op=('+'|'-') expr #AddSubExpr
          | expr op=('>'|'<'|'>='|'<=') expr #CompareExpr
          | expr op=('=='|'!=') expr #EqualsExpr
@@ -108,8 +108,8 @@ list: '{{' (ID',')*ID '}}' ;
 point: pointRect 
      | pointPol 
 ; 
-pointRect: '(' Number ',' Number ')' ;
-pointPol:  '(' Number ':' Number ')' ;
+pointRect: '(' expr ',' expr ')' ;
+pointPol:  '(' expr ':' expr ')' ;
 
 type: t=('number' | 'point' | 'list' | 'string' | 'state'| 'boolean') ; 
 
@@ -127,4 +127,3 @@ SingleLineComment: [/][/].*?NEWLINE -> skip;
 BlockComment :     '/*' .*? '*/' -> skip;
 
 ERROR: . ;
-
