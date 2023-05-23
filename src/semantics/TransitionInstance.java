@@ -28,4 +28,10 @@ public class TransitionInstance {
     public String toString() {
         return String.format("%s -> %c -> %s", from, symbol, to);
     }
+
+    @Override
+    public int hashCode() {
+        // TODO Auto-generated method stub
+        return super.hashCode();
+    }
 }
