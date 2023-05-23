@@ -1,4 +1,4 @@
-alphabet {'a', 'b', 'a'}
+alphabet {'a', 'b', 'c'}
 
 DFA a2 <<<
     state A, B, C;
@@ -23,10 +23,9 @@ DFA a2 <<<
 
 
 view v1 of a2 <<<
-    point p1 = (A) + 1;     // é suposto dar erro, nao sao 2 pontos
+    point p1 = (A) + 1;     // erro, soma entre point e number
     point p2 = (10,10);
-    place D at (4,3);           // erro, estado D nao existe para a2
-    place <A,C>#label at (2,1); // não há transição entre A e C
-    place <A,B>#label at ABC; // invalid expr no final deste statement (ABC)
-    <A,C> as p1 -- p2;      // <A,C> nao existe
+    point p3 = (1 + 3) + ((0,2) + (4,3));       // erro, soma entre number e point
+    place C at (4,3);        
+    <A,A> as p1 -- p2;      // <A,C> nao existe
 >>>

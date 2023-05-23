@@ -944,13 +944,30 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    // TODO: return value
    @Override public Boolean visitAlgebricOP(advParser.AlgebricOPContext ctx) {
       Boolean res = null;
-      return visitChildren(ctx);
+      // só fiz isto porque temos expr na gramatica
+      if (ctx.decl() != null) {
+         visit(ctx.decl());
+      } else if (ctx.assign() != null) {
+         visit(ctx.assign());
+      }
+      return res;
    }
 
    @Override public Boolean visitMultDivExpr(advParser.MultDivExprContext ctx) {
       Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      visit(ctx.expr(0));     // visita a expressão da esquerda
+      visit(ctx.expr(1));     // visita a expressão da direita
+      String leftExprType, rightExprType;
+      leftExprType = valuesToString.get(ctx.expr(0));
+      rightExprType = valuesToString.get(ctx.expr(1));
+      // Se forem do mesmo type, é valido
+      if (leftExprType != null && rightExprType != null && leftExprType.equals(rightExprType)) {
+         valuesToString.put(ctx, leftExprType); // leftexprtype ou rightexprtype é a mesma coisa
+      } else {
+         System.err.printf("Error: Incompatible types in multiplication/division operation. Left expression is '%s' and right is '%s'.\n", leftExprType, rightExprType);
+         ErrorHandling.registerError();
+      }
+      return res;
    }
 
    @Override public Boolean visitAndExpr(advParser.AndExprContext ctx) {
@@ -994,8 +1011,15 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitParanthesisExpr(advParser.ParanthesisExprContext ctx) {
       Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      String exprType;
+      visit(ctx.expr());
+      // o valor guardado pelo ctx.expr em valuesToString 
+      // vai ser passado pelo ctx atual, pois apenas adiciona parentesis à volta
+      exprType = valuesToString.get(ctx.expr());
+      if (exprType != null) {
+         valuesToString.put(ctx, exprType);
+      }
+      return res;
    }
 
    @Override public Boolean visitOrExpr(advParser.OrExprContext ctx) {
@@ -1021,8 +1045,15 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       return res;
    }
 
+   // TODO: scope do state
+   // (ID) irá representar o ponto em que se encontra um state
    @Override public Boolean visitParanthesisIDExpr(advParser.ParanthesisIDExprContext ctx) {
       Boolean res = null;
+      String stateID = ctx.ID().getText();
+      Symbol state_symbol = currentSymbolTable.findSymbol(stateID);
+      if (state_symbol != null && state_symbol.type() == STATE_TYPE) {
+         valuesToString.put(ctx, "point");
+      }
       return visitChildren(ctx);
       //return res;
    }
@@ -1070,8 +1101,22 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitAddSubExpr(advParser.AddSubExprContext ctx) {
       Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      visit(ctx.expr(0));     // visita a expressão da esquerda
+      visit(ctx.expr(1));     // visita a expressão da direita
+      String leftExprType, rightExprType;
+      leftExprType = valuesToString.get(ctx.expr(0));
+      rightExprType = valuesToString.get(ctx.expr(1));
+      // Se forem do mesmo type, é valido
+      if (leftExprType != null && rightExprType != null && leftExprType.equals(rightExprType)) {
+         valuesToString.put(ctx, leftExprType); // leftexprtype ou rightexprtype é a mesma coisa
+      } else {
+         System.err.printf("Error: Incompatible types in addition/subtraction operation. Left expression is '%s' and right is '%s'.\n", leftExprType, rightExprType);
+         ErrorHandling.registerError();
+      }
+      // remover de valuesToString (para poupar memoria)
+      valuesToString.removeFrom(ctx.expr(0));
+      valuesToString.removeFrom(ctx.expr(1));
+      return res;
    }
 
    @Override public Boolean visitAssign(advParser.AssignContext ctx) {
