@@ -27,5 +27,6 @@ view v1 of a2 <<<
     place D at (4,3);           // erro, estado D nao existe para a2
     place <A,C>#label at (2,1); // não há transição entre A e C
     place <A,B>#label at ABC; // invalid expr no final deste statement (ABC)
+    place A at 1;
     <A,C> as p1 -- p2;      // <A,C> nao existe
 >>>

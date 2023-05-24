@@ -547,19 +547,18 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitTransitionRedefine(advParser.TransitionRedefineContext ctx) {
       Boolean res = true;
-      if (ctx.transition() != null) { // transition as transition point 
-         String transitionText = ctx.transition().getText();
-         if (!visit(ctx.transition())) {
-            System.err.printf("Invalid transition '%s' on transition redefinition statement. It doesn't exist for automaton \"%s\".\n", transitionText, currentAutomatonString);
-            ErrorHandling.registerError();
-            res = false;
-         } else {
-            for (int i = 0; i < ctx.transitionPoint().size() ; i++) {
-               if (!visit(ctx.transitionPoint(i)))
-                  res = false;
-            }
+      String transitionText = ctx.transition().getText();
+      if (!visit(ctx.transition())) {
+         System.err.printf("Invalid transition '%s' on transition redefinition statement. It doesn't exist for automaton \"%s\".\n", transitionText, currentAutomatonString);
+         ErrorHandling.registerError();
+         res = false;
+      } else {
+         for (int i = 0; i < ctx.transitionPoint().size() ; i++) {
+            if (!visit(ctx.transitionPoint(i)))
+               res = false;
          }
       }
+      
       return res;
    }
 
@@ -635,7 +634,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitIDplaceElement(advParser.IDplaceElementContext ctx) {
       Boolean res = null;
-// Verificar que ID existe e é um state
+      // Verificar que ID existe e é um state
       // TODO: cuidado com o scope, symbol table para encontrar o state 
       String exprType;
 
@@ -1227,20 +1226,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          "above right",
          "below left ",
          "below right "
-         ));
-      return possibleProperties.contains(property);
-   }
-
-   public static boolean isValidBoolean(String property)
-   {
-      List<String> possibleProperties = new ArrayList<>(Arrays.asList(
-         "and",
-         "not",
-         "or",
-         "lesser",
-         "greater",
-         "greater or equal",
-         "equals"
          ));
       return possibleProperties.contains(property);
    }
