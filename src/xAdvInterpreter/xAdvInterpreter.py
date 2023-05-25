@@ -1,7 +1,6 @@
 from antlr4 import *
 from xAdvParser import xAdvParser
 from xAdvVisitor import xAdvVisitor
-import json 
 
 class xAdvInterpreter(xAdvVisitor):
    def visitProgram(self, ctx:xAdvParser.ProgramContext):

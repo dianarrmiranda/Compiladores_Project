@@ -73,6 +73,10 @@ class Grid:
     def setline(self,val):
         self.line = val
 
+    def draw():
+        pass
+        
+
 class State:
 
     def __init__(self, label , accepting = "False" , initial = "False"):
