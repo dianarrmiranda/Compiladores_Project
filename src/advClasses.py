@@ -1,6 +1,6 @@
 from asyncio import wait
 from copy import deepcopy
-from numpy import array, ndarray
+from numpy import array, ndarray ,matrix , cos , sin , pi, sqrt
 import numpy as np
 import cv2 as cv
 import math
@@ -489,3 +489,86 @@ class Automaton:
     def __repr__(self) -> str:
         return str(self)
 
+def HermiteSpline(points: list,tangents: list,scales:list=[],res=25) -> list:
+    """
+    Given a set of points and tangents returns a set of points describing a path that passes
+    through all the points with the given tangent.
+
+     points: A set of points where the spline must pass.
+     tangents: Defines a tangent in degrees to the spline at the point of correspoding index.
+     scales: Defines the 'how much' the tangent influences the spline.
+     res: the number of points generated between 2 points of param points.
+     return: A list of points 
+
+     Size of points and tangent must be the same.
+    """
+    assert len(points) == len(tangents)
+
+    # If scale not defined default to 200 
+    # if len(scales) == 0:
+    #     scales = [200]*len(points)
+
+
+    # If scale not defined default to average distance between the self and neighboor points
+    # This makes it so the curvature is proportional to distance between points which seems natural
+    def absP(P):
+        return sqrt( P[0]**2 + P[1] **2 )
+    if len(scales) == 0:
+        a = [ absP( points[x]-points[x+1] ) for x in range(0,len(points)-1) ]
+        scales = [a[0]]
+        for i in range(1,len(points)-1):
+            scales.append( (a[i]+a[i-1])/2 )
+        scales.append(a[len(points)-2])
+
+    # Define Hermite matrix
+    H = matrix([[ 1, 0, 0, 0],
+                [ 0, 1, 0, 0],
+                [-3,-2, 3,-1],
+                [ 2, 1,-2, 1]])
+
+    # Function that returns vector with powers of t
+    T = lambda t: array( [1,t,t**2,t**3] )
+
+    # function that does all the main calculation 
+    # basicly only two points and two tangents at a specific t in [0,1]
+    def hermiteSpline2Points(P1,P2,v1,v2,t):
+        P = array([P1,v1,P2,v2])
+        r = array(T(t)*H*P)
+        return array([int(r[0,0]),int(r[0,1])])
+    
+    # Convert tagents to velocity
+    # invert y because higher values are down
+    velocities = [ array([ scales[i]*cos( tangents[i] * pi / 180 ) , -scales[i]*sin( tangents[i] * pi / 180 )  ]) 
+                  for i in range(len(tangents))]
+    output = []
+    for i in range(1,len(points)):
+        P1 = points[i-1]
+        P2 = points[i]
+        v1 = velocities[i-1]
+        v2 = velocities[i]
+
+        output.append(P1)
+        for n in range(1,res):
+            output.append( hermiteSpline2Points(P1,P2,v1,v2,n/res) )
+        output.append(P2)
+
+    return output
+
+def hermitetest():
+    img = np.zeros((500, 500, 3), dtype=np.uint8)
+
+    points = [ array([50,50]) , array([250,150]) , array([400,50]) ,array([400,400])  ]
+    tangents = [ -45,90,0,-120 ]
+
+    spline = HermiteSpline(points,tangents)
+    for i in range(1,len(spline)):
+        cv.line(img,spline[i-1],spline[i],(255,255,255),2)
+
+    for i in points:
+        cv.circle(img,i,5,(255,0,0),5)
+
+    cv.imshow("test",img)
+    cv.waitKey(0)
+
+if __name__ == "__main__":
+    hermitetest()
