@@ -42,6 +42,10 @@ view(name,automaton) ::= "View('<name>',<automaton>)"
 
 viewPort(view,cornerBottom,cornerTop) ::= "ViewPort(<view>,<cornerBottom>,<cornerTop>)"
 
+viewportInstructions(command,instruction) ::=<<
+
+>>
+
 animation(viewport) ::= "Animation(<array(viewport)>)"
 
 grid(widthheigth) ::= "Grid(widthheigth)"
@@ -58,6 +62,21 @@ read(msg) ::= "input(<msg>)"
 
 forIn(var,list,stat) ::= <<
 for <var> in <list>:
+    <stats(stat)>
+>>
+
+while(expr,stat) ::=<<
+while <expr>:
+    <stats(stat)>
+>>
+
+if(expr,stat)::=<<
+if <expr>:
+    <stats(stat)>
+>>
+
+else(stat)::=<<
+else:
     <stats(stat)>
 >>
 
