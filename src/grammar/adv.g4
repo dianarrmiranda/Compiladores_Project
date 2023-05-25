@@ -23,8 +23,11 @@ automatonFor: 'for' ID 'in' expr automatonStat
             |'for' ID 'in' expr '<<<' automatonStat+ '>>>';
 automatonWhile:'while' expr 'do' automatonStat
             |'while' expr 'do' '<<<'automatonStat+'>>>';
-automatonIf:'if' expr 'do' automatonStat
-            |'if' expr 'do' '<<<'automatonStat+'>>>';
+automatonIf:'if' expr 'do' automatonStat automatonElse?
+            |'if' expr 'do' '<<<'automatonStat+'>>>' automatonElse?;
+automatonElse:'else' automatonStat
+            | 'else' '<<<' automatonStat+ '>>>';
+
 stateDef: 'state' (ID',')*ID ';'; 
 
 propertiesDef: ID propertyElement+ ';';         
@@ -39,8 +42,10 @@ viewFor: 'for' ID 'in' expr viewStat
        |'for' ID 'in' expr '<<<' viewStat+ '>>>';
 viewWhile:'while' expr 'do' viewStat
                |'while' expr 'do' '<<<'viewStat+'>>>'; 
-viewIf:'if' expr 'do' viewStat
-          |'if' expr 'do' '<<<'viewStat+'>>>';
+viewIf:'if' expr 'do' viewStat viewElse?
+          |'if' expr 'do' '<<<'viewStat+'>>>' viewElse?;
+viewElse:'else' viewStat
+            | 'else' '<<<' viewStat+ '>>>';
 
 transitionRedefine: transition 'as' transitionPoint '--' (transitionPoint '--')* transitionPoint';';       
 transitionPoint: expr propertyElement*;
@@ -67,14 +72,15 @@ viewportStat: (propertiesDef| viewportFor| viewportInstructions| algebricOP | vi
 
 viewportWhile:'while' expr 'do' viewportStat
                |'while' expr 'do' '<<<'viewportStat+'>>>'; 
-viewportIf:'if' expr 'do' viewportStat
-          |'if' expr 'do' '<<<'viewportStat+'>>>';
+viewportIf:'if' expr 'do' viewportStat viewportElse?
+          |'if' expr 'do' '<<<'viewportStat+'>>>' viewportElse;
+viewportElse:'else' viewportStat
+            | 'else' '<<<' viewportStat+ '>>>';
 viewportFor: 'for' ID 'in' expr viewportStat 
           |'for' ID 'in' expr '<<<' viewportStat+ '>>>';
 
-viewportInstructions: 'show' (viewportInstructionsShowElement',')*viewportInstructionsShowElement ';'
-                    | 'show' ';'
-                    | 'pause' ';'
+viewportInstructions: 'show' (viewportInstructionsShowElement',')*viewportInstructionsShowElement ';' #compound
+                    | op=('show'|'pause') ';' #simple
 ;
 viewportInstructionsShowElement:ID propertyElement* | transition; 
 

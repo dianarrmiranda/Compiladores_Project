@@ -110,7 +110,7 @@ public class compilerSimple extends advBaseVisitor<ST> {
       ST res = templates.getInstanceOf("stats");
       ST forV = templates.getInstanceOf("forIn");
 
-      res.add("stat",visit(ctx.expr()));
+      res.add("stat",visit(ctx.expr()).render());
 
       String loopVar = newVar();
       setVar(ctx.ID().getText(), loopVar);
@@ -125,16 +125,43 @@ public class compilerSimple extends advBaseVisitor<ST> {
    }
 
    @Override public ST visitAutomatonWhile(advParser.AutomatonWhileContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("stats");
+      ST wh = templates.getInstanceOf("while");
+      String expr=visit(ctx.expr()).render();
+      res.add("stat",expr);
+      wh.add("expr",decl.get(ctx.expr()).get(0));
+
+      for(advParser.AutomatonStatContext c : ctx.automatonStat())
+         wh.add("stat", visit(c).render());
+         
+      wh.add("stat",expr);
+      res.add("stat",wh.render());
+      return res;
+   }
+   
+   @Override public ST visitAutomatonIf(advParser.AutomatonIfContext ctx) {
+      ST res = templates.getInstanceOf("stats");
+      ST xif = templates.getInstanceOf("if");
+      res.add("stat",visit(ctx.expr()).render());
+      xif.add("expr",decl.get(ctx.expr()).get(0));
+      for(advParser.AutomatonStatContext c : ctx.automatonStat())
+         xif.add("stat", visit(c).render());
+      
+      res.add("stat",xif.render());
+      if(ctx.automatonElse()!=null)res.add("stat",visit(ctx.automatonElse()).render());
+      
+      return res;
    }
 
-   @Override public ST visitAutomatonIf(advParser.AutomatonIfContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
-   }
+   @Override public ST visitAutomatonElse(advParser.AutomatonElseContext ctx) {
+      ST res = templates.getInstanceOf("stats");
+      ST el = templates.getInstanceOf("else");
+      for(advParser.AutomatonStatContext c : ctx.automatonStat())
+         el.add("stat", visit(c).render());
+      
+      res.add("stat",el.render());
+      return res;
+   }   
 
    @Override public ST visitStateDef(advParser.StateDefContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -259,16 +286,99 @@ public class compilerSimple extends advBaseVisitor<ST> {
    }
 
    @Override public ST visitViewWhile(advParser.ViewWhileContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("stats");
+      ST wh = templates.getInstanceOf("while");
+      String expr=visit(ctx.expr()).render();
+      res.add("stat",expr);
+      wh.add("expr",decl.get(ctx.expr()).get(0));
+
+      for(advParser.ViewStatContext c : ctx.viewStat())
+         wh.add("stat", visit(c).render());
+         
+      wh.add("stat",expr);
+      res.add("stat",wh.render());
+      return res;
    }
 
    @Override public ST visitViewIf(advParser.ViewIfContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+      ST res = templates.getInstanceOf("stats");
+      ST xif = templates.getInstanceOf("if");
+      res.add("stat",visit(ctx.expr()).render());
+      xif.add("expr",decl.get(ctx.expr()).get(0));
+      for(advParser.ViewStatContext c : ctx.viewStat())
+         xif.add("stat", visit(c).render());
+      
+      res.add("stat",xif.render());
+      if(ctx.viewElse()!=null)res.add("stat",visit(ctx.viewElse()).render());
+      return res;
    }
+
+   @Override public ST visitViewElse(advParser.ViewElseContext ctx) {
+      ST res = templates.getInstanceOf("stats");
+      ST el = templates.getInstanceOf("else");
+      for(advParser.ViewStatContext c : ctx.viewStat())
+         el.add("stat", visit(c).render());
+      
+      res.add("stat",el.render());
+      return res;
+   }   
+
+   @Override public ST visitViewportFor(advParser.ViewportForContext ctx) {
+      ST res = templates.getInstanceOf("stats");
+      ST forV = templates.getInstanceOf("forIn");
+
+      res.add("stat",visit(ctx.expr()));
+
+      String loopVar = newVar();
+      setVar(ctx.ID().getText(), loopVar);
+      forV.add("var",loopVar);
+      forV.add("list",decl.get(ctx.expr()).get(0));
+
+      for(advParser.ViewportStatContext c : ctx.viewportStat())
+         forV.add("stat", visit(c).render());
+
+      res.add("stat",forV.render());
+      return res;
+   }
+
+   @Override public ST visitViewportWhile(advParser.ViewportWhileContext ctx) {
+      ST res = templates.getInstanceOf("stats");
+      ST wh = templates.getInstanceOf("while");
+      String expr=visit(ctx.expr()).render();
+      res.add("stat",expr);
+      wh.add("expr",decl.get(ctx.expr()).get(0));
+
+      for(advParser.ViewportStatContext c : ctx.viewportStat())
+         wh.add("stat", visit(c).render());
+         
+      wh.add("stat",expr);
+      res.add("stat",wh.render());
+      return res;
+   }
+
+   @Override public ST visitViewportIf(advParser.ViewportIfContext ctx) {
+      ST res = templates.getInstanceOf("stats");
+      ST xif = templates.getInstanceOf("if");
+      res.add("stat",visit(ctx.expr()).render());
+      xif.add("expr",decl.get(ctx.expr()).get(0));
+      for(advParser.ViewportStatContext c : ctx.viewportStat())
+         xif.add("stat", visit(c).render());
+      
+      res.add("stat",xif.render());
+      if(ctx.viewportElse()!=null)res.add("stat",visit(ctx.viewportElse()).render());
+      return res;
+   }
+
+   @Override public ST visitViewportElse(advParser.ViewportElseContext ctx) {
+      ST res = templates.getInstanceOf("stats");
+      ST el = templates.getInstanceOf("else");
+      for(advParser.ViewportStatContext c : ctx.viewportStat())
+         el.add("stat", visit(c).render());
+      
+      res.add("stat",el.render());
+      return res;
+   }   
+
 
    @Override public ST visitTransitionRedefine(advParser.TransitionRedefineContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -461,29 +571,17 @@ public class compilerSimple extends advBaseVisitor<ST> {
       //return res;
    }
 
-   @Override public ST visitViewportWhile(advParser.ViewportWhileContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
+   @Override public ST visitCompound(advParser.CompoundContext ctx) {
+      ST res = templates.getInstanceOf("stats");
+
+      return res;
+   }
+   @Override public ST visitSimple(advParser.SimpleContext ctx) {
+      ST res = templates.getInstanceOf("stats");
+
+      return res;
    }
 
-   @Override public ST visitViewportIf(advParser.ViewportIfContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
-   }
-
-   @Override public ST visitViewportFor(advParser.ViewportForContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
-   }
-
-   @Override public ST visitViewportInstructions(advParser.ViewportInstructionsContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      //return res;
-   }
 
    @Override public ST visitViewportInstructionsShowElement(advParser.ViewportInstructionsShowElementContext ctx) {
       ST res = null;
