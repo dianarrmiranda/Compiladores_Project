@@ -93,7 +93,10 @@ view v4 of a4 <<<
     a=5;
     b=0;
     c=1;
-    while (a != b) do <<< c=c+1 a=a-1>>>;
+    while (a != b) do <<< 
+    c= c + 1;
+    a= a - 1;
+    >>>
 >>>
 
 /*
