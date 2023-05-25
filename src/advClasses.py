@@ -197,6 +197,7 @@ class AdvAutomatonView:
     def draw(self, mat, scaleFrom, scaleTo):
         for f in self.figures.values():
             f.draw(mat, scaleFrom, scaleTo)
+        
 
 #--------------------------------------------------------
 
@@ -350,6 +351,8 @@ class ViewPort:
 
         self.cornerTop = cornerTop
 
+        self.states : State = []
+
         self.av = AdvAutomatonView()
         for state in view.automaton.states:
             self.f = AdvStateFigure(state.label, Point(state.pos[0], state.pos[1]))
@@ -375,19 +378,25 @@ class ViewPort:
         self.vp.fill(255)
 
     def show(self, *args):
+        
         for arg in args:
             if arg.__class__ == State:
+                self.states.append(arg)
                 self.av.figures[arg.label].visible = True
             
             if arg.__class__ == Transition:
                 self.av.figures['<'+arg.stateStart.label+','+arg.stateEnd.label+'>'].visible = True
+            
+        for state in self.states:
+            if state.accepting == 'true':
+                self.av.figures[state.label].accepting = True;
 
-        
         self.av.draw(self.vp, 1.0, 50)
         np.copyto(self.window[10:,10:,:], self.vp)
         cv.imshow('Animation a1', self.window)
 
     def pause(self):
+        print("------------------------------------------")
         cv.waitKey(0)
         pass
 
