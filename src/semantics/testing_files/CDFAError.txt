@@ -1,10 +1,7 @@
-// Neste caso, há apenas 2 carateres no alfabeto, 'a' e 'b'
-// Tenho de decidir se, quando meto um carater invalido (como 'c') 
-// nas transições, deve prevenir sequer a analise semantica das transições, tipo ver se é DFA/NFA/CDFA
 alphabet {'a', 'b', 'c'}
 
 complete DFA a2 <<<
-    state A, B, A;
+    state A, B, C;
     A [initial = true];
     A [accepting = test];
     C [accepting = true];
@@ -24,5 +21,5 @@ complete DFA a2 <<<
         A -> 'c' -> C,
         B -> 'a','c' -> A, 
         B -> 'b' -> C,
-        C -> 'a','b' -> C;
+        C -> 'a','b' -> C;      // falta uma transição em C com 'c'
 >>>

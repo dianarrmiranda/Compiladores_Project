@@ -79,10 +79,6 @@ public class Transitions {
                     current_list.add(current_symbol);
             }
         }
-        for (String from : symbolsPerState.keySet()) {
-            System.out.printf("from - %s -> %s\n", from, symbolsPerState.get(from).toString());
-        }
-
         return ret;
     }
     /*

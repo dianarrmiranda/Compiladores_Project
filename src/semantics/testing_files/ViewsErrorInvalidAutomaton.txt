@@ -21,9 +21,12 @@ DFA a2 <<<
         A -> 'c' -> A;
 >>>
 
-
-view v1 of a2 <<<
-    place A at (3,4);
-
-
+// NAO PASSA DAQUI PORQUE a3 NÃO EXISTE
+view v1 of a3 <<<
+    point p1 = (A) + (-20:0.6);
+    point p2 = (10,10);
+    place D at (4,3);           // erro, estado D nao existe para a2
+    place <A,C>#label at (2,1); // não há transição entre A e C
+    place <A,B>#label at ABC; // invalid expr no final deste statement (ABC)
+    <A,C> as p1 -- p2;      // <A,C> nao existe
 >>>
