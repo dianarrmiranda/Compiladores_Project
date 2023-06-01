@@ -42,8 +42,8 @@ view(name,automaton) ::= "View('<name>',<automaton>)"
 
 viewPort(view,cornerBottom,cornerTop) ::= "ViewPort(<view>,<cornerBottom>,<cornerTop>)"
 
-viewportInstructions(command,instruction) ::=<<
-
+viewportInstructions(name,instruction) ::=<<def <name>(view):
+    <stats(instruction)>
 >>
 
 animation(viewport) ::= "Animation(<array(viewport)>)"
@@ -59,6 +59,10 @@ get(var,prop,value) ::= <<<var>.get<prop>(<value; separator=",">)>>
 add(var,prop,value) ::= <<<var>.add<prop>(<value; separator=",">)>>
 
 read(msg) ::= "input(<msg>)"
+
+show(element) ::= <<view.show(<element; separator=",">)>>
+
+pause() ::= "view.pause()"
 
 forIn(var,list,stat) ::= <<
 for <var> in <list>:

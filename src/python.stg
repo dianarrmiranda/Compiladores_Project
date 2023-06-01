@@ -1,7 +1,8 @@
-module(stat,imp) ::= <<
-from advClasses impor *
-from numpy impor *
-<stats(imp)>
+module(stat) ::= <<
+from advClasses import *
+from numpy import *
+from math import *
+# from xAdvInterpreter import *
 
 def main():
     <stats(stat)>
@@ -27,29 +28,62 @@ array(elem) ::= <<
 >>
 
 map(elem,key) ::= <<
-    {<if(elem)><mapElem(elem,key); separator=","><endif>}
+{<if(elem)><mapElem(elem,key); separator=","><endif>}
 >>
 mapElem(elem,key) ::= "<elem> : <key>"
 
-state(label,accepting,initial) ::= "State(<label> <if(accepting)>,accepting=<accepting><endif><if(initial)>,initial=<initial><endif>)"
+state(label,accepting,initial) ::= "State('<label>'<if(accepting)>,accepting=<accepting><endif><if(initial)>,initial=<initial><endif>)"
 
-transition(label,stateStart,stateEnd) ::= <<Transition(<label; separator=",">,<stateStart>,<stateEnd>)>>
+transition(label,stateStart,stateEnd) ::= <<Transition('<label; separator=",">',<stateStart>,<stateEnd>)>>
 
-automaton(name,state,transition) ::= "Automaton(<name>,<array(state)>,<array(transitions)>)"
+automaton(name,state,transition) ::= "Automaton('<name>',<array(state)>,<array(transition)>)"
 
-view(automaton,state,slocation,transition,tlocation) ::= "View(<automaton>,<map(state,slocation)>,<map(transition,tlocation)>)"
+view(name,automaton) ::= "View('<name>',<automaton>)"
 
 viewPort(view,cornerBottom,cornerTop) ::= "ViewPort(<view>,<cornerBottom>,<cornerTop>)"
 
+viewportInstructions(name,instruction) ::=<<def <name>(view):
+    <stats(instruction)>
+>>
+
 animation(viewport) ::= "Animation(<array(viewport)>)"
+
+grid(widthheigth) ::= "Grid(widthheigth)"
 
 play(animation) ::= "<animation>.play()"
 
-setP(var,prop,value) ::= <<<var>.set<prop>('<value; separator=" ">')>>
+setP(var,prop,value) ::= <<<var>.set<prop>(<value; separator=",">)>>
 
-importS(file) ::= "import <file>"
+get(var,prop,value) ::= <<<var>.get<prop>(<value; separator=",">)>>
 
-forIn(var,list,stat) :: = <<
-    for <var> in <list>:
-        <stats(stat)>
+add(var,prop,value) ::= <<<var>.add<prop>(<value; separator=",">)>>
+
+read(msg) ::= "input(<msg>)"
+
+show(element) ::= <<view.show(<element; separator=",">)>>
+
+pause() ::= "view.pause()"
+
+forIn(var,list,stat) ::= <<
+for <var> in <list>:
+    <stats(stat)>
 >>
+
+while(expr,stat) ::=<<
+while <expr>:
+    <stats(stat)>
+>>
+
+if(expr,stat)::=<<
+if <expr>:
+    <stats(stat)>
+>>
+
+else(stat)::=<<
+else:
+    <stats(stat)>
+>>
+
+importS(file) ::= "interpreter=Interpreter(<file>)"
+
+
