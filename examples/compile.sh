@@ -56,10 +56,5 @@ curDir=$(echo "$curDir"/ )
 pathToDest=$(echo "$curDir""$pathToDest")
 pathToSource=$(echo "$curDir""$pathToSource")
 
-
-echo $pathToSource
-echo $pathToDest
-echo $pathToCompiler
-
 cd $pathToCompiler
 cat $pathToSource | antlr4-run > $pathToDest

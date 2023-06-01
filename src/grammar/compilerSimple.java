@@ -719,6 +719,8 @@ public class compilerSimple extends advBaseVisitor<ST> {
 
    @Override
    public ST visitPlayDef(advParser.PlayDefContext ctx) {
+      if(getVar(ctx.ID().getText()).equals(""))
+         return null;
       ST res = templates.getInstanceOf("play");
       res.add("animation",getVar(ctx.ID().getText()));
       return res;
