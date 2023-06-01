@@ -217,31 +217,6 @@ class Animation:
     def __repr__(self) -> str:
         return str(self)
 
-class ViewPort:
-
-    def __init__(self,view,cornerBottom,cornerTop):
-        
-        self.view = view
-
-        self.cornerBottom = cornerBottom
-
-        self.cornerTop = cornerTop
-
-    def show(self):
-        img = np.zeros((500, 500, 3), dtype=np.uint8)
-        self.view.draw(img)
-
-        cv2.imshow('Automaton', img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
-
-    def __str__(self) -> str:
-        return str(self.__dict__)
-    
-    def __repr__(self) -> str:
-        return str(self)
-
 class Grid:
 
     def __init__(self,widthheigth,step=0.5,margin=0.25,color='gray',line='solid'):
