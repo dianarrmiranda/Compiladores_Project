@@ -718,16 +718,10 @@ public class compilerSimple extends advBaseVisitor<ST> {
    }
 
    @Override
-   public ST visitViewportInstructionsShowElement(advParser.ViewportInstructionsShowElementContext ctx) {
-      ST res = templates.getInstanceOf("stats");
-      return res;
-   }
-
-   @Override
    public ST visitPlayDef(advParser.PlayDefContext ctx) {
-      ST res = null;
-      return visitChildren(ctx);
-      // return res;
+      ST res = templates.getInstanceOf("play");
+      res.add("animation",getVar(ctx.ID().getText()));
+      return res;
    }
 
    @Override

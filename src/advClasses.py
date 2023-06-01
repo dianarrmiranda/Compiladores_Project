@@ -5,6 +5,7 @@ import numpy as np
 import cv2 as cv
 import math
 from enum import Enum
+from threading import Thread
 
 #--------------------------------------------------------
 
@@ -208,8 +209,21 @@ class Animation:
         # create a copy of a viewport
         self.viewPorts = deepcopy(viewPorts)
 
-    def play(self, func):
-        func()
+        self.animfunc = []
+
+        self.threads = []
+
+    def play(self):
+        for i in range(len(self.animfunc)):
+            t = Thread( target=self.animfunc[i] , args=(self.viewPorts[i],) )
+            self.threads.append(t)
+            t.start()
+
+        for i in self.threads:
+            i.join()
+
+    def add(self,func):
+        self.animfunc.append(func)
         
     def __str__(self) -> str:
         return str(self.__dict__)
@@ -351,6 +365,12 @@ class ViewPort:
 
         self.vp = np.zeros((500, 500, 3), dtype="uint8")
         self.vp.fill(255)
+
+    def getstate(self,str: str) -> State:
+        return self.view.getstate(str)
+    
+    def gettransition(self,str1: str,str2: str) -> Transition:
+        return self.view.gettransition(str1,str2)
 
     def show(self, *args):
         
