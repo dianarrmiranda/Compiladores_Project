@@ -25,7 +25,26 @@
 
 ## Relatório
 
-- Use esta secção para fazer um relatório sucinto mas explicativo dos objetivos concretizados.
+### __Introdução__
+
+Relatório para a linguagem adv do grupo P4-G2 para a unidade curricular de Compiladores 2022/2023.
+
+<br />
+
+### __Gramática__
+
+-
+<br />
+
+### __Análise Semântica__
+
+-
+<br />
+
+### __Geração de Código__
+
+-
+<br />
 
 ## Contribuições
 

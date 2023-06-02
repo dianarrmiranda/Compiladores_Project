@@ -9,6 +9,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
 >>
 
 stats(stat) ::= <<
@@ -48,7 +49,7 @@ viewportInstructions(name,instruction) ::=<<def <name>(view):
 
 animation(viewport) ::= "Animation(<array(viewport)>)"
 
-grid(widthheigth) ::= "Grid(widthheigth)"
+grid(name,widthheigth) ::= "Grid(<name>,<widthheigth>)"
 
 play(animation) ::= "<animation>.play()"
 
@@ -86,4 +87,15 @@ else:
 
 importS(file) ::= "interpreter=Interpreter(<file>)"
 
+applyInterpreter()::=<<
+    ID=interpreter.pop("ID",-1)
+    type=interpreter.pop("type")
+    if type=="import":
+        
+    if ID != -1:
+        for propertie,value in interpreter:
+            
+        
+
+>>
 

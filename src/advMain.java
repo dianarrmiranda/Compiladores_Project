@@ -1,4 +1,6 @@
 import java.io.IOException;
+import java.io.PrintWriter;
+
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 import org.stringtemplate.v4.*;
@@ -22,10 +24,15 @@ public class advMain {
          if (parser.getNumberOfSyntaxErrors() == 0) {
             // print LISP-style tree:
             // System.out.println(tree.toStringTree(parser));
-            compilerSimple compiler = new compilerSimple();
-            ST result = compiler.visit(tree);
-            System.out.println(result.render());
-
+            AdvSemCheck semCheck = new AdvSemCheck();
+            semCheck.visit(tree);
+            if(!ErrorHandling.error()){
+               PrintWriter writer = new PrintWriter(args[0], "UTF-8");
+               advCodeGen compiler = new advCodeGen();
+               String code = compiler.visit(tree).render();
+               writer.print(code);
+               writer.close();
+            } 
          }
       }
       catch(IOException e) {

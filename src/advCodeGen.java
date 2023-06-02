@@ -9,7 +9,7 @@ import javax.smartcardio.TerminalFactory;
 import org.antlr.v4.runtime.tree.*;
 
 @SuppressWarnings("CheckReturnValue")
-public class compilerSimple extends advBaseVisitor<ST> {
+public class advCodeGen extends advBaseVisitor<ST> {
 
    private STGroup templates = new STGroupFile("python.stg");
    private ParseTreeProperty<LinkedList<String>> decl = new ParseTreeProperty();
@@ -42,10 +42,19 @@ public class compilerSimple extends advBaseVisitor<ST> {
       return res;
    }
 
+<<<<<<< HEAD
+   @Override public ST visitImportStat(advParser.ImportStatContext ctx) {
+      ST res = templates.getInstanceOf("importS");
+      if(ctx.ID()!=null)
+         res.add("file","import "+ctx.ID().getText());
+      else 
+         res.add("file",ctx.DefImport().getText());
+=======
    @Override
    public ST visitImportstat(advParser.ImportstatContext ctx) {
       ST res = templates.getInstanceOf("module");
       res.add("file", ctx.ID().getText());
+>>>>>>> 5db5f66281503defddee1bd20e19d4e57faf8af4
       return res;
    }
 
@@ -346,6 +355,7 @@ public class compilerSimple extends advBaseVisitor<ST> {
 
    @Override
    public ST visitViewportFor(advParser.ViewportForContext ctx) {
+      onFor = true;
       ST res = templates.getInstanceOf("stats");
       ST forV = templates.getInstanceOf("forIn");
 
@@ -359,9 +369,8 @@ public class compilerSimple extends advBaseVisitor<ST> {
       for (advParser.ViewportStatContext c : ctx.viewportStat())
          forV.add("stat", visit(c).render());
 
-      System.out.println(forV.render());
       res.add("stat", forV.render());
-
+      onFor=false;
       return res;
    }
 
@@ -545,23 +554,32 @@ public class compilerSimple extends advBaseVisitor<ST> {
    }
 
    private String curGrid = "";
-
    @Override
    public ST visitGridDef(advParser.GridDefContext ctx) {
       ST res = templates.getInstanceOf("stats");
-
       ST ass = templates.getInstanceOf("assign");
+      ST set = templates.getInstanceOf("setP");
+
       String var = newVar();
       curGrid = var;
       setVar(ctx.ID().getText(), var);
       ass.add("var", var);
 
       ST grid = templates.getInstanceOf("grid");
+      res.add("stat",visit(ctx.expr()).render());
       grid.add("widthheigth", decl.get(ctx.expr()));
+      grid.add("name","'"+ctx.ID().getText()+"'");
       ass.add("value", grid.render());
 
       res.add("stat", ass.render());
 
+      set.add("var",curView);
+      set.add("prop","grid");
+      set.add("value",var);
+
+      res.add("stat",set.render());
+
+      curGrid = var;
       for (advParser.GridOptionsContext c : ctx.gridOptions()) {
          res.add("stat", visit(c).render());
       }
@@ -636,8 +654,10 @@ public class compilerSimple extends advBaseVisitor<ST> {
       return res;
    }
 
+   private boolean onViewport = false;
    @Override
    public ST visitViewportOn(advParser.ViewportOnContext ctx) {
+      onViewport = true;
       ST viewP = templates.getInstanceOf("viewportInstructions");
 
       String var = newVar();
@@ -652,10 +672,11 @@ public class compilerSimple extends advBaseVisitor<ST> {
       LinkedList<String> l = new LinkedList<>();
       l.add(var);
       decl.put(ctx, l);
-
+      onViewport = false;
       return viewP;
    }
 
+   private boolean onFor = false;
    @Override
    public ST visitCompound(advParser.CompoundContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -676,8 +697,11 @@ public class compilerSimple extends advBaseVisitor<ST> {
             ST show = templates.getInstanceOf("show");
 
             get.add("var", "view");
-            get.add("prop", "state");
-            get.add("value", "'" + c.ID().getText() + "'");
+
+            if(!onFor)
+               get.add("value", "'" + c.ID().getText() + "'");
+            else
+               get.add("value",getVar( c.ID().getText() ));
 
             for (advParser.PropertyElementContext d : c.propertyElement()) {
                ST set = templates.getInstanceOf("setP");
@@ -753,10 +777,6 @@ public class compilerSimple extends advBaseVisitor<ST> {
       ST res = null;
 
       LinkedList<String> l = new LinkedList<>();
-      if (ctx.expr() != null) {
-         res = visit(ctx.expr());
-         l = decl.get(ctx.expr());
-      }
 
       if (ctx.decl() != null) {
          res = visit(ctx.decl());
@@ -822,7 +842,14 @@ public class compilerSimple extends advBaseVisitor<ST> {
    public ST visitIDExpr(advParser.IDExprContext ctx) {
       ST res = templates.getInstanceOf("stats");
       LinkedList<String> l = new LinkedList<>();
-      l.add(getVar(ctx.ID().getText()));
+      if(onViewport){
+         ST get = templates.getInstanceOf("get");
+         get.add("var","view");
+         get.add("value","'"+ctx.ID().getText()+"'");
+         l.add(get.render());
+      }
+      else
+         l.add(getVar(ctx.ID().getText()));
       decl.put(ctx, l);
       return res;
    }
@@ -1064,7 +1091,10 @@ public class compilerSimple extends advBaseVisitor<ST> {
       ST res = templates.getInstanceOf("array");
 
       for (TerminalNode c : ctx.ID()) {
-         res.add("elem", getVar(c.getText()));
+         if(onViewport)
+            res.add("elem", "'"+c.getText()+"'" );
+         else
+            res.add("elem", getVar(c.getText()));
       }
 
       return res;

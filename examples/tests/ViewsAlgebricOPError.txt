@@ -1,0 +1,31 @@
+alphabet {'a', 'b', 'c'}
+
+DFA a2 <<<
+    state A, B, C;
+    A [initial = true];
+    C [accepting = true];
+    B [accepting = true];
+    for ar in {{A,B,C}} <<< xd [accepting = true]; dx [accepting = false]; >>> 
+    
+    // BOOLEAN EXPRESSION TESTS
+    while 10 > 20 and 20 < 10 do <<< test [accepting = true];>>>
+
+    if 10 == 20 or 10 != 500 do A [slope = 200];
+
+    // erro semantico dentro do while
+    while 10 and 20 > 20 or 10 do <<< test [accepting = true];>>>
+
+    // esta transition é um exemplo de um conjunto valido de transições para DFAs
+    transition 
+        A -> 'a','b' -> B,
+        A -> 'c' -> A;
+>>>
+
+
+view v1 of a2 <<<
+    point p1 = (A) + 1;     // erro, soma entre point e number
+    point p2 = (10,10);
+    point p3 = (1 + 3) + ((0,2) + (4,3));       // erro, soma entre number e point
+    place C at (4,3);        
+    <A,A> as p1 -- p2;      // <A,C> nao existe
+>>>

@@ -57,4 +57,4 @@ pathToDest=$(echo "$curDir""$pathToDest")
 pathToSource=$(echo "$curDir""$pathToSource")
 
 cd $pathToCompiler
-cat $pathToSource | antlr4-run > $pathToDest
+cat $pathToSource | java advMain $pathToDest
