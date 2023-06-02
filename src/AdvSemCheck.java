@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.HashMap;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
+
 @SuppressWarnings("CheckReturnValue")
 public class AdvSemCheck extends advBaseVisitor<Boolean> {
    /* TYPES */   
@@ -21,6 +22,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    protected static final Type NUMBER_TYPE = new NumberType();
    protected static final Type BOOLEAN_TYPE = new BooleanType();
    protected static final Type LIST_TYPE = new ListType();
+   protected static final Type GRID_TYPE = new GridType();
 
    // ParseTreeProperty usada para passar os simbolos de alphabetElement para alphabetDef,
    // é capaz de ser boa ideia mudar isto, está ineficiente (mas funciona)
@@ -45,20 +47,23 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    private List<String> loopStates = new ArrayList<>();
    // que automato é que está a ser usado agora
    private String currentAutomatonString;
+   // view a ser definida agora (usado para guardar as grids desta view)
+   private String currentViewString;
    // view -> automato
    private Map <String, String> viewAutomaton = new HashMap<>();
    // List para garantir que variaveis nao inicializadas não podem ser usadas
    private List<String> declared_not_initialized = new ArrayList<>();
+   // mapa view -> grid
+   private Map<String, String> viewGrids = new HashMap<>();
 
 
    @Override public Boolean visitProgram(advParser.ProgramContext ctx) {
       Boolean res = null;
       return visitChildren(ctx);
-      //return res;
    }
 
    @Override public Boolean visitStat(advParser.StatContext ctx) {
-      Boolean res = null;
+      Boolean res = true;
       return visitChildren(ctx);
       //return res;
    }
@@ -120,14 +125,16 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    }
 
    @Override public Boolean visitAutomatonDef(advParser.AutomatonDefContext ctx) {
-      Boolean res = null;
+      Boolean res = true;
       if (ctx.automatonDFADef() != null) {
          if (!visit(ctx.automatonDFADef())) {
             ErrorHandling.printError(ctx,"Couldn't define automaton. Variable name taken.");
+            res = false;
          }
       } else if (ctx.automatonNFADef() != null) {
          if (!visit(ctx.automatonNFADef())) {
             ErrorHandling.printError(ctx,"Couldn't define automaton. Variable name taken.");
+            res = false;
          }
       }
       return res;
@@ -534,7 +541,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    }
 
    @Override public Boolean visitViewDef(advParser.ViewDefContext ctx) {
-      Boolean res = null;
+      Boolean res = true;
       String viewID = ctx.ID(0).getText();
       String automatonID = ctx.ID(1).getText();
       Symbol automatonSymbol = globalSymbolTable.findSymbol(automatonID);
@@ -543,21 +550,25 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       if (globalSymbolTable.containsSymbol(viewID)) {
          ErrorHandling.printError(ctx,String.format("Invalid ID for view -  Already taken."));
          ErrorHandling.registerError();
+         res = false;
       } else {
          // Verificar se ID de automato dado existe e está associado a um automato
          if (automatonSymbol == null) {
             ErrorHandling.printError(ctx, String.format("Automaton ID not found - \"%s\"", automatonID));
             currentAutomatonString = "";
             ErrorHandling.registerError();
+            res = false;
             
          } else if (!automatonSymbol.type().subtype(AUTOMATON_TYPE)) {
             ErrorHandling.printError(ctx,String.format("Invalid type for automaton given."));
             currentAutomatonString = "";
             ErrorHandling.registerError();
+            res = false;
          } else {
             globalSymbolTable.putSymbol(viewID, new Symbol(VIEW_TYPE));
             currentSymbolTable = new SymbolTable(globalSymbolTable);
             currentStates = automatonStates.get(automatonID);
+            currentViewString = viewID;
             for (String state : currentStates.getStates()) {
                currentSymbolTable.putSymbol(state, new Symbol(STATE_TYPE));
             }
@@ -770,6 +781,8 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       {
          ErrorHandling.printError(ctx,String.format("ERROR: Cannot define grid '%s'. Variable name taken.", gridID));
          ErrorHandling.registerError();
+      } else {
+         viewGrids.put(currentViewString, gridID);
       }
       for (int i = 0; i < ctx.gridOptions().size(); i++) {
          visit(ctx.gridOptions(i));
@@ -821,17 +834,19 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    }
 
    @Override public Boolean visitAnimationDef(advParser.AnimationDefContext ctx) {
-      Boolean res = null;
+      Boolean res = true;
       String animationID = ctx.ID().getText();
       if (globalSymbolTable.containsSymbol(animationID))
       {
          ErrorHandling.printError(ctx,String.format("Variable name taken on animation definition - \"%s\"", animationID));
          ErrorHandling.registerError();
+         res = false;
       } else {
          globalSymbolTable.putSymbol(animationID, new Symbol(ANIMATION_TYPE));
          currentSymbolTable = new SymbolTable(globalSymbolTable);
       }
-      return visitChildren(ctx);
+      visitChildren(ctx);
+      return res;
    }
 
    @Override public Boolean visitViewportDef(advParser.ViewportDefContext ctx) {
@@ -854,6 +869,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
                ErrorHandling.printError(ctx,String.format("Wrong type for variable \"%s\" in viewport definition. Must be a view.", viewID));
                ErrorHandling.registerError();
             } else {
+               currentViewString = viewID;
                visit(ctx.expr(0));
                visit(ctx.expr(1));
                if (!valuesToString.get(ctx.expr(0)).equals("point") || !valuesToString.get(ctx.expr(1)).equals("point")) {
@@ -886,6 +902,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
             ErrorHandling.printError(ctx,String.format("Wrong type for variable \"%s\". Must be a viewport.", viewportID));
             ErrorHandling.registerError();
          } else {
+            currentSymbolTable.putSymbol(viewGrids.get(currentViewString), new Symbol(GRID_TYPE));
             return visitChildren(ctx);
          }
       } else {
@@ -897,6 +914,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitViewportStat(advParser.ViewportStatContext ctx) {
       Boolean res = null;
+
       return visitChildren(ctx);
       //return res;
    }
@@ -1015,7 +1033,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
             ErrorHandling.registerError();
          }
       } else {
-         ErrorHandling.printError(ctx,String.format("Animation \"%s\" not found in 'play' statement..", animationID));
+         ErrorHandling.printError(ctx,String.format("Animation \"%s\" not found in 'play' statement.", animationID));
          ErrorHandling.registerError();
       }
       return res;

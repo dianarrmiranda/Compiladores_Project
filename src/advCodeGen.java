@@ -42,19 +42,10 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
-<<<<<<< HEAD
-   @Override public ST visitImportStat(advParser.ImportStatContext ctx) {
-      ST res = templates.getInstanceOf("importS");
-      if(ctx.ID()!=null)
-         res.add("file","import "+ctx.ID().getText());
-      else 
-         res.add("file",ctx.DefImport().getText());
-=======
    @Override
    public ST visitImportstat(advParser.ImportstatContext ctx) {
       ST res = templates.getInstanceOf("module");
       res.add("file", ctx.ID().getText());
->>>>>>> 5db5f66281503defddee1bd20e19d4e57faf8af4
       return res;
    }
 
