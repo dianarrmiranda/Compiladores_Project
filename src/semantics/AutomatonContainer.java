@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ public class AutomatonContainer {
 
     AutomatonContainer() {
         states = new ArrayList<>();
+        statesProperties = new HashMap<>();
     }
 
     public List<String> getStates() {
@@ -24,8 +26,14 @@ public class AutomatonContainer {
         statesProperties.put(state, new HashSet<>());
     }
 
+    // para quando se faz por exemplo A [initial = true]
     public void addProperty(String state, String property) {
         statesProperties.get(state).add(property);
+    }
+
+    // para quando se faz por exemplo A [initial = false]
+    public void removeProperty(String state, String property) {
+        statesProperties.get(state).remove(property);
     }
 
     public int InitialStatesCount() {

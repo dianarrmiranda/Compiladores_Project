@@ -123,10 +123,6 @@ public class Transitions {
             }
         }
         // Condição de Complete DFA:
-        System.out.println("DEPOIS DE ADICIONAR TUDO EM COMPLETE DFA");
-        for (String from : symbolsPerState.keySet()) {
-            System.out.printf("from - %s -> %s\n", from, symbolsPerState.get(from).toString());
-        }
         for (List<Character> symbolList : symbolsPerState.values()) {
             if (symbolList.size() != NumAlphabetChars)
             {

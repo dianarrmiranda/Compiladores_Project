@@ -39,6 +39,8 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    private Map <String, Transitions> automatonsTransitions = new HashMap<>();
    // estados dos automatos
    private Map<String, AutomatonContainer> automatonStates = new HashMap<>();
+   // que state está a ser usado agora (para guardar numero de initial/accepting)
+   private String currentStateString;
    // que automato é que está a ser usado agora
    private String currentAutomatonString;
    // view -> automato
@@ -129,7 +131,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       int i;
       Type automatonType = NFA_TYPE;
       currAutomatonType = NFA_TYPE;
-
       String automaton_symbolName = ctx.ID().getText();
       // Verificar se automato com este ID já foi definido, se foi, então houve erro
       if (globalSymbolTable.containsSymbol(automaton_symbolName)) {
@@ -159,13 +160,12 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       
       
       visit(ctx.transitionDef());
-
-      if (numAcceptingStates == 0) {
+      AutomatonContainer states = automatonStates.get(currentAutomatonString);
+      if (states.AcceptingStatesCount() == 0) {
          ErrorHandling.printError(ctx,"Automaton should have at least 1 accepting state.");
          ErrorHandling.registerError();
       }
-
-      if (numInitialStates != 1) {
+      if (states.InitialStatesCount() != 1) {
          ErrorHandling.printError(ctx,"Automaton should have one and only one initial state.");
          ErrorHandling.registerError();
       }
@@ -219,13 +219,13 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       currentAutomatonString = automaton_symbolName;
 
       visit(ctx.transitionDef());
-
-      if (numAcceptingStates == 0) {
+      AutomatonContainer aut_container = automatonStates.get(currentAutomatonString);
+      if (aut_container.AcceptingStatesCount() == 0) {
          ErrorHandling.printError(ctx,"Automaton should have at least 1 accepting state.");
          ErrorHandling.registerError();
       }
 
-      if (numInitialStates != 1) {
+      if (aut_container.InitialStatesCount() != 1) {
          ErrorHandling.printError(ctx,"Automaton should have one and only one initial state.");
          ErrorHandling.registerError();
       }
@@ -303,7 +303,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          if (currentSymbolTable.containsSymbol(currState)) {
             res = false;
             ErrorHandling.registerError();
-            ErrorHandling.printError(ctx,String.format("Duplicate state -  \"%s\"", currState));
+            ErrorHandling.printError(ctx,String.format("Variable name taken -  \"%s\"", currState));
          } else {
             currentSymbolTable.putSymbol(currState, new Symbol(STATE_TYPE));
             states.addState(currState);
@@ -316,8 +316,10 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    @Override public Boolean visitPropertiesDef(advParser.PropertiesDefContext ctx) {
       Boolean res = null;
       String stateID = ctx.ID().getText();
+      currentStateString = stateID;
       String propertyKey;
       Symbol stateSymbol = currentSymbolTable.findSymbol(stateID);
+      
       if (stateSymbol == null) {
          ErrorHandling.printError(ctx,String.format("Can't define property for state \"%s\". Symbol not found.", stateID));
          ErrorHandling.registerError();
@@ -347,33 +349,40 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       Boolean res = true;
       String propertyKey = ctx.propertiesKeys().getText();
       String propertyValue = "";
-      if (ctx.ID() != null) {
+      // para ir contando o numero de initial/accepting
+      AutomatonContainer states = automatonStates.get(currentAutomatonString);
+      if (ctx.Number() == null) {
          for (int i = 0; i < ctx.ID().size(); i++)
          { 
             propertyValue = propertyValue + ctx.ID(i).getText() + " ";
          }
-      } else if (ctx.Number() != null) {
+      } else {
          propertyValue = propertyValue + ctx.Number().getText();
       }
+      propertyValue = propertyValue.strip();
       if (propertyKey.equals("initial"))  // true ou false
       {
-         if (!propertyValue.equals("true ") && !propertyValue.equals("false ")) {
+         if (!propertyValue.equals("true") && !propertyValue.equals("false")) {
             ErrorHandling.printError(ctx,"Invalid property value for \"" + propertyKey + "\" as propertyKey");
             ErrorHandling.registerError();
          } else {
-            if (numInitialStates == 0) {
-               numInitialStates++;
+            if (propertyValue.equals("true")) {
+               states.addProperty(currentStateString, propertyKey);
             } else {
-               ErrorHandling.printError(ctx,"Too many initial states, only 1 may be allowed.");
+               states.removeProperty(currentStateString, propertyKey);
             }
          }
          valuesToString.put(ctx, "initial");
       } else if (propertyKey.equals("accepting")) {
-         if (!propertyValue.equals("true ") && !propertyValue.equals("false ")) {
+         if (!propertyValue.equals("true") && !propertyValue.equals("false")) {
             ErrorHandling.printError(ctx,String.format("Invalid property value for \"%s\" as propertyKey - \"%s\"", propertyKey, propertyValue));
             ErrorHandling.registerError();
          } else {
-            numAcceptingStates++;
+            if (propertyValue.equals("true")) {
+               states.addProperty(currentStateString, propertyKey);
+            } else {
+               states.removeProperty(currentStateString, propertyKey);
+            }
          }
          valuesToString.put(ctx, "accepting");
 
@@ -385,14 +394,14 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          valuesToString.put(ctx, "align");
       } else if (propertyKey.equals("slope")) {
          // Tem de ser um valor numerico (mas não sei se inclui 0)
-         if (!propertyValue.matches("[1-9][0-9]*")) {
+         if (!propertyValue.matches("[0-9]+")) {
             ErrorHandling.printError(ctx,String.format("Invalid property value for \"%s\" as propertyKey - \"%s\"", propertyKey, propertyValue));
             ErrorHandling.registerError();
          } 
          valuesToString.put(ctx, "slope");
 
       } else if (propertyKey.equals("highlighted")) {
-         if (!propertyValue.equals("true ") && !propertyValue.equals("false ")) {
+         if (!propertyValue.equals("true") && !propertyValue.equals("false")) {
             ErrorHandling.printError(ctx,String.format("Invalid property value for \"%s\" as propertyKey - \"%s\"", propertyKey, propertyValue));
             ErrorHandling.registerError();
          } 
@@ -604,9 +613,9 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          for (int i = 0; i < ctx.propertyElement().size() ; i++) {
             visit(ctx.propertyElement(i));
             propertyKey = valuesToString.get(ctx.propertyElement(i));
-            if (!propertyKey.equals("align")) {
+            if (!propertyKey.equals("slope")) {
                ErrorHandling.registerError();
-               ErrorHandling.printError(ctx,"Invalid property key for show statament. Must be either 'accepting' or 'highlighted'.");
+               ErrorHandling.printError(ctx,"Invalid property key for show statement. Must be either 'slope'.");
                res = false;
             }
          }
@@ -767,7 +776,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          ErrorHandling.printError(ctx,String.format("Variable name taken on animation definition - \"%s\"", animationID));
          ErrorHandling.registerError();
       } else {
-         System.out.println("Defined new animation with ID: " + animationID);
          globalSymbolTable.putSymbol(animationID, new Symbol(ANIMATION_TYPE));
          currentSymbolTable = new SymbolTable(globalSymbolTable);
       }
@@ -802,7 +810,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
                } else {
                   currentAutomatonString = viewAutomaton.get(viewID);
                   currentStates = automatonStates.get(currentAutomatonString);
-                  System.out.println("ENTREI DENTRO DE VIEWPORT DEF. Estados aqui dentro: " + currentStates.getStates().toString());
                   for (String state : currentStates.getStates()) {
                      currentSymbolTable.putSymbol(state, new Symbol(STATE_TYPE));
                   }
@@ -874,12 +881,10 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       //return res;
    }
 
-   // TODO: FAZER LOOP COM STRINGS!!
    @Override public Boolean visitViewportFor(advParser.ViewportForContext ctx) {
       Boolean res = null;
       // O ID do for apenas existe enquanto o for existir
       String forVarID = ctx.ID().getText();
-      // TODO: Aqui não tenho a certeza se o type dos elementos da lista é obrigatoriamente estados
       // para já, vou assumir que os elementos da lista são states
       currentSymbolTable.putSymbol(forVarID, new Symbol(STATE_TYPE));
       visit(ctx.expr());
@@ -888,7 +893,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
       if (!(typeExpr.equals("list") || typeExpr.equals("string")))
       {
-         ErrorHandling.printError(ctx,String.format("Invalid type of expression in viewportFor. Correct use -> for [id] in [list]"));
+         ErrorHandling.printError(ctx,String.format("Invalid type of expression in viewportFor. Correct use -> for [id] in [list/string]"));
          ErrorHandling.registerError();
       }
       // Depois disto, chamar os automatonStats
