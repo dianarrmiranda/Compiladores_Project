@@ -21,6 +21,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    protected static final Type NUMBER_TYPE = new NumberType();
    protected static final Type BOOLEAN_TYPE = new BooleanType();
    protected static final Type LIST_TYPE = new ListType();
+   protected static final Type GRID_TYPE = new GridType();
 
    // ParseTreeProperty usada para passar os simbolos de alphabetElement para alphabetDef,
    // é capaz de ser boa ideia mudar isto, está ineficiente (mas funciona)
@@ -45,10 +46,14 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    private List<String> loopStates = new ArrayList<>();
    // que automato é que está a ser usado agora
    private String currentAutomatonString;
+   // view a ser definida agora (usado para guardar as grids desta view)
+   private String currentViewString;
    // view -> automato
    private Map <String, String> viewAutomaton = new HashMap<>();
    // List para garantir que variaveis nao inicializadas não podem ser usadas
    private List<String> declared_not_initialized = new ArrayList<>();
+   // mapa view -> grid
+   private Map<String, String> viewGrids = new HashMap<>();
 
 
    @Override public Boolean visitProgram(advParser.ProgramContext ctx) {
@@ -558,6 +563,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
             globalSymbolTable.putSymbol(viewID, new Symbol(VIEW_TYPE));
             currentSymbolTable = new SymbolTable(globalSymbolTable);
             currentStates = automatonStates.get(automatonID);
+            currentViewString = viewID;
             for (String state : currentStates.getStates()) {
                currentSymbolTable.putSymbol(state, new Symbol(STATE_TYPE));
             }
@@ -770,6 +776,8 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       {
          ErrorHandling.printError(ctx,String.format("ERROR: Cannot define grid '%s'. Variable name taken.", gridID));
          ErrorHandling.registerError();
+      } else {
+         viewGrids.put(currentViewString, gridID);
       }
       for (int i = 0; i < ctx.gridOptions().size(); i++) {
          visit(ctx.gridOptions(i));
@@ -854,6 +862,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
                ErrorHandling.printError(ctx,String.format("Wrong type for variable \"%s\" in viewport definition. Must be a view.", viewID));
                ErrorHandling.registerError();
             } else {
+               currentViewString = viewID;
                visit(ctx.expr(0));
                visit(ctx.expr(1));
                if (!valuesToString.get(ctx.expr(0)).equals("point") || !valuesToString.get(ctx.expr(1)).equals("point")) {
@@ -886,6 +895,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
             ErrorHandling.printError(ctx,String.format("Wrong type for variable \"%s\". Must be a viewport.", viewportID));
             ErrorHandling.registerError();
          } else {
+            currentSymbolTable.putSymbol(viewGrids.get(currentViewString), new Symbol(GRID_TYPE));
             return visitChildren(ctx);
          }
       } else {
@@ -897,6 +907,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitViewportStat(advParser.ViewportStatContext ctx) {
       Boolean res = null;
+
       return visitChildren(ctx);
       //return res;
    }
