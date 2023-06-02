@@ -137,7 +137,7 @@ class AdvTransitionFigure(AdvFigure):
         elif self.labelAlignment == Align.ABOVE:
             c = c + Point(-sz[0]/2, sz[1])
         elif self.labelAlignment == Align.BELOW:
-            c = c + Point(-sz[0]/2, 0)
+            c = c + Point(-sz[0]/2, sz[1]*2)
         center = c.roundToInt()
         cv.putText(mat, self.label, center, cv.FONT_HERSHEY_SIMPLEX, 0.8, self.strokeColor,self.strokeThickness)
 
@@ -145,7 +145,7 @@ class AdvTransitionFigure(AdvFigure):
 #--------------------------------------------------------
 
 class AdvLoopTransitionFigure(AdvTransitionFigure):
-    def __init__(self, key, label, p):
+    def __init__(self, key, label, p, align):
         super().__init__(key, label)
 
         # set arrow points
@@ -161,14 +161,23 @@ class AdvLoopTransitionFigure(AdvTransitionFigure):
         # set label reference point and alignment
         p1 = p1 + Point(0.2, -0.2)
         self.labelReferencePoint = p1
-        self.labelAlignment = Align.LEFT
-
-
-
+        # convert align string to enum value
+        if align == 'BELOW':
+            self.labelAlignment = Align.BELOW
+        elif align == 'ABOVE':
+            self.labelAlignment = Align.ABOVE
+        elif align == 'CENTERED':
+            self.labelAlignment = Align.CENTERED
+        elif align == 'LEFT':
+            self.labelAlignment = Align.LEFT
+        elif align == 'RIGHT':
+            self.labelAlignment = Align.RIGHT
+        else:
+            raise ValueError("Invalid alignment value")
 #--------------------------------------------------------
 
 class AdvLineTransitionFigure(AdvTransitionFigure):
-    def __init__(self, key, label, p1, p2):
+    def __init__(self, key, label, p1, p2, align):
         super().__init__(key, label)
 
         # set arrow points
@@ -182,8 +191,52 @@ class AdvLineTransitionFigure(AdvTransitionFigure):
         # set label reference point and alignment
         p = (pa + pb) / 2 + Point(0, -0.2)
         self.labelReferencePoint = p
-        self.labelAlignment = Align.CENTERED;
+        # convert align string to enum value
+        if align == 'BELOW':
+            self.labelAlignment = Align.BELOW
+        elif align == 'ABOVE':
+            self.labelAlignment = Align.ABOVE
+        elif align == 'CENTERED':
+            self.labelAlignment = Align.CENTERED
+        elif align == 'LEFT':
+            self.labelAlignment = Align.LEFT
+        elif align == 'RIGHT':
+            self.labelAlignment = Align.RIGHT
+        else:
+            raise ValueError("Invalid alignment value")
 
+#--------------------------------------------------------
+class AdvCurveTransitionFigure(AdvTransitionFigure):
+    def __init__(self, key, label, p1, p2, p3, align):
+        super().__init__(key, label)
+    
+        # set arrow points
+        p31 = p3 - p1
+        d = p31 / p31.norm() * 0.7
+        pa = p3 + d + Point(-0.2, 0.9)
+        self.arrowPoints.append(pa)
+        pb = p2 * 2 + Point(-1.5, 0.3) 
+        self.arrowPoints.append(pb)
+        pc = p1 - d + Point(-0.5, 0.3)
+        self.arrowPoints.append(pc)
+
+        # set label reference point and alignment
+        p = (pa + pb + pc) / 3 + Point(0, -0.2)
+        self.labelReferencePoint = p
+        # convert align string to enum value
+        if align == 'BELOW':
+            self.labelAlignment = Align.BELOW
+        elif align == 'ABOVE':
+            self.labelAlignment = Align.ABOVE
+        elif align == 'CENTERED':
+            self.labelAlignment = Align.CENTERED
+        elif align == 'LEFT':
+            self.labelAlignment = Align.LEFT
+        elif align == 'RIGHT':
+            self.labelAlignment = Align.RIGHT
+        else:
+            raise ValueError("Invalid alignment value")
+    
 #--------------------------------------------------------
 
 class AdvAutomatonView:
@@ -302,7 +355,7 @@ class Transition:
         # End State
         self.stateEnd = stateEnd
 
-        self.alignlabel = 'middle'
+        self.alignlabel = 'CENTERED'
 
         self.points = []
 
@@ -311,12 +364,13 @@ class Transition:
         self.lablepos = array([0,0])
 
     def setalign(self,val) -> None:
-        self.alignlabel = val
+        self.alignlabel = val.upper().strip()
 
     def setpos(self,val) -> None:
         self.lablepos = val
 
     def addpoint(self,point,slope=-1) -> None:
+        print("point: " + str(point))
         self.points.insert(-1,point)
         self.slope.append(slope)
 
@@ -352,11 +406,17 @@ class ViewPort:
             trans = '<'+stateStart+','+stateEnd+'>'
             point1 = transition.stateStart.pos
             point2 = transition.stateEnd.pos
+            point3 = transition.points
+            labelAlign = transition.alignlabel
+            print("point3: " + str(point3))
             if stateStart == stateEnd:
-                self.f = AdvLoopTransitionFigure(trans, transition.label, Point(point1[0], point2[1]))
+                self.f = AdvLoopTransitionFigure(trans, transition.label, Point(point1[0], point2[1]),labelAlign)
                 self.av.addFigure(trans, self.f)
-            else:
-                self.f = AdvLineTransitionFigure(trans, transition.label, Point(point1[0], point2[1]), Point(point2[0], point2[1]))
+            elif (stateStart > stateEnd):
+                self.f = AdvCurveTransitionFigure(trans, transition.label, Point(point3[0][0], point3[0][1]), Point(point3[1][0], point3[1][1]), Point(point3[2][0], point3[2][1]),labelAlign)
+                self.av.addFigure(trans, self.f)
+            elif (stateStart < stateEnd):
+                self.f = AdvLineTransitionFigure(trans, transition.label, Point(point1[0], point1[1]), Point(point2[0], point2[1]), labelAlign)
                 self.av.addFigure(trans, self.f)
 
         self.window = np.zeros((510, 510, 3), dtype="uint8")
@@ -372,7 +432,6 @@ class ViewPort:
         return self.view.gettransition(str1,str2)
 
     def show(self, *args):
-        
         for arg in args:
             if arg.__class__ == State:
                 self.states.append(arg)
