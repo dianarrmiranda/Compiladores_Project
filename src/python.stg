@@ -9,6 +9,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
 >>
 
 stats(stat) ::= <<
@@ -86,4 +87,15 @@ else:
 
 importS(file) ::= "interpreter=Interpreter(<file>)"
 
+applyInterpreter()::=<<
+    ID=interpreter.pop("ID",-1)
+    type=interpreter.pop("type")
+    if type=="import":
+        
+    if ID != -1:
+        for propertie,value in interpreter:
+            
+        
+
+>>
 

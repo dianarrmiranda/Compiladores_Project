@@ -129,8 +129,14 @@ animation m4 <<<
             /* depending on the value of l, highlight the appropriate states */
             pause;
         >>>
-    >>>
+    >>>ctx.visit(ctx.ID())
 >>>
+
+import a2
+define automaton{color:red}
+
+define a4{color:red
+text:big}
 
 play m1;
 
