@@ -27,15 +27,15 @@ public interface advListener extends ParseTreeListener {
 	 */
 	void exitStat(advParser.StatContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link advParser#importstat}.
+	 * Enter a parse tree produced by {@link advParser#importStat}.
 	 * @param ctx the parse tree
 	 */
-	void enterImportstat(advParser.ImportstatContext ctx);
+	void enterImportStat(advParser.ImportStatContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link advParser#importstat}.
+	 * Exit a parse tree produced by {@link advParser#importStat}.
 	 * @param ctx the parse tree
 	 */
-	void exitImportstat(advParser.ImportstatContext ctx);
+	void exitImportStat(advParser.ImportStatContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link advParser#alphabetDef}.
 	 * @param ctx the parse tree

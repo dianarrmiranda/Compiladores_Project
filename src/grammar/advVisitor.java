@@ -22,11 +22,11 @@ public interface advVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitStat(advParser.StatContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link advParser#importstat}.
+	 * Visit a parse tree produced by {@link advParser#importStat}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitImportstat(advParser.ImportstatContext ctx);
+	T visitImportStat(advParser.ImportStatContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link advParser#alphabetDef}.
 	 * @param ctx the parse tree

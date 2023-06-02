@@ -40,13 +40,13 @@ public class advBaseListener implements advListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterImportstat(advParser.ImportstatContext ctx) { }
+	@Override public void enterImportStat(advParser.ImportStatContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitImportstat(advParser.ImportstatContext ctx) { }
+	@Override public void exitImportStat(advParser.ImportStatContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

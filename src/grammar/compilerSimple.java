@@ -40,9 +40,12 @@ public class compilerSimple extends advBaseVisitor<ST> {
       return res;
    }
 
-   @Override public ST visitImportstat(advParser.ImportstatContext ctx) {
-      ST res = templates.getInstanceOf("module");
-      res.add("file",ctx.ID().getText());
+   @Override public ST visitImportStat(advParser.ImportStatContext ctx) {
+      ST res = templates.getInstanceOf("importS");
+      if(ctx.ID()!=null)
+         res.add("file","import "+ctx.ID().getText());
+      else 
+         res.add("file",ctx.DefImport().getText());
       return res;
    }
 

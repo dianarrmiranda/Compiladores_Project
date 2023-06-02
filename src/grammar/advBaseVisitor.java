@@ -31,7 +31,7 @@ public class advBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements ad
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitImportstat(advParser.ImportstatContext ctx) { return visitChildren(ctx); }
+	@Override public T visitImportStat(advParser.ImportStatContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
