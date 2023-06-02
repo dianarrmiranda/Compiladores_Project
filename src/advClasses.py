@@ -236,19 +236,17 @@ class AdvLineTransitionFigure(AdvTransitionFigure):
 class AdvCurveTransitionFigure(AdvTransitionFigure):
     def __init__(self, key, label, p1, p2, p3, align):
         super().__init__(key, label)
-    
-        # set arrow points
-        p31 = p3 - p1
-        d = p31 / p31.norm() * 0.7
-        pa = p3 + d + Point(-0.2, 0.9)
-        self.arrowPoints.append(pa)
-        pb = p2 * 2 + Point(-1.5, 0.3) 
-        self.arrowPoints.append(pb)
-        pc = p1 - d + Point(-0.5, 0.3)
-        self.arrowPoints.append(pc)
+
+        p3 = p3 + Point(0, 0.4)
+        p1 = p1 + Point(-0.0, 0.5)
+        p2 = p2 + Point(-0.0, 0.3)
+
+        self.arrowPoints.append(p3)
+        self.arrowPoints.append(p1)
+        self.arrowPoints.append(p2)
 
         # set label reference point and alignment
-        p = (pa + pb + pc) / 3 + Point(0, -0.2)
+        p = (p1 + p2 + p3) / 3 + Point(0, -0.2)
         self.labelReferencePoint = p
         # convert align string to enum value
         if align == 'BELOW':
