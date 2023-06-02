@@ -2,9 +2,9 @@ grammar adv;
 
 program: alphabetDef stat* EOF
 ;
-stat:(importStat| automatonDef | viewDef | animationDef |playDef);
+stat:(importstat| automatonDef | viewDef | animationDef |playDef);
 
-importStat:('import'ID)|DefImport;
+importstat:'import' ID ';';
 
 alphabetDef : 'alphabet' '{' (alphabetElement',')*alphabetElement '}' |
 'alphabet' ID '-' ID ;
@@ -89,7 +89,7 @@ playDef: 'play' ID ';';
 decl: type (assign ',')*assign  | type (ID',')*ID  
 ;
 
-algebricOP: ( decl | assign ) ';' ;
+algebricOP: ( expr | decl | assign ) ';' ;
 
 expr:     op=('+'|'-') expr #UnaryExpr
          |'not' expr #NotExpr
@@ -121,8 +121,6 @@ type: t=('number' | 'point' | 'list' | 'string' | 'state'| 'boolean') ;
 
 gridProperties: prop=('step'|'margin'|'color'|'line');
 propertiesKeys: prop=('initial'|'accepting'|'align'|'slope'|'highlighted');
-
-DefImport: 'define' .*?'{'.*?'}';
 
 Number:  ('+'|'-')?[0-9]+('.'[0-9]+)?; 
 ID:      [a-zA-Z][a-zA-Z0-9]*;
