@@ -41,4 +41,10 @@ public class SymbolTable {
         }
         return null;
     }
+
+    // para debug
+    @Override
+    public String toString() {
+        return symbolTable.keySet().toString();
+    }
 }

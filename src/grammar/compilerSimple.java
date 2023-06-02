@@ -534,7 +534,7 @@ public class compilerSimple extends advBaseVisitor<ST> {
       String r = visit(ctx.expr()).render();
       if (r.length() != 0)
          res.add("stat", r);
-
+      
       set.add("var", decl.get(ctx.transitionLabelAlter()));
       set.add("prop", "pos");
       set.add("value", decl.get(ctx.expr()));
@@ -552,6 +552,7 @@ public class compilerSimple extends advBaseVisitor<ST> {
       ST set = templates.getInstanceOf("setP");
 
       String var = newVar();
+      curGrid = var;
       setVar(ctx.ID().getText(), var);
       ass.add("var", var);
 
