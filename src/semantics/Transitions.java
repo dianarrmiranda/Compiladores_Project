@@ -18,8 +18,9 @@ public class Transitions {
         TransitionInstance ti = new TransitionInstance(from, to, symbol);
         if (isDuplicate(ti))
             ret = false;
-        else   
+        else {
             stateSymbol.add(ti);
+        }
         
         return ret;
     }
@@ -71,12 +72,13 @@ public class Transitions {
             } else {
                 current_list = symbolsPerState.get(current_from);
                 // multiplas transições para um simbolo é invalido em DFA
-                if (symbolsPerState.get(current_from).contains(current_symbol))
+                if (symbolsPerState.get(current_from).contains(current_symbol) || current_symbol == '\'')   // transição vazia é representada por \' internamente, mas é mesmo string vazia no codigo fonte
                 {
                     ret = false;
                     break;
-                } else
+                } else {
                     current_list.add(current_symbol);
+                }
             }
         }
         return ret;
@@ -114,7 +116,7 @@ public class Transitions {
             } else {
                 current_list = symbolsPerState.get(current_from);
                 // multiplas transições para um simbolo é invalido em DFA
-                if (symbolsPerState.get(current_from).contains(current_symbol))
+                if (symbolsPerState.get(current_from).contains(current_symbol) || current_symbol == '\'')
                 {
                     ret = false;
                     break;

@@ -41,6 +41,8 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    private Map<String, AutomatonContainer> automatonStates = new HashMap<>();
    // que state está a ser usado agora (para guardar numero de initial/accepting)
    private String currentStateString;
+   // estados dentro da lista (usado por causa de definir propriedades no AutomatonFor, e garantir que só ha 1 initial e pelo menos 1 acceptingState)
+   private List<String> loopStates = new ArrayList<>();
    // que automato é que está a ser usado agora
    private String currentAutomatonString;
    // view -> automato
@@ -119,8 +121,16 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitAutomatonDef(advParser.AutomatonDefContext ctx) {
       Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      if (ctx.automatonDFADef() != null) {
+         if (!visit(ctx.automatonDFADef())) {
+            ErrorHandling.printError(ctx,"Couldn't define automaton. Variable name taken.");
+         }
+      } else if (ctx.automatonNFADef() != null) {
+         if (!visit(ctx.automatonNFADef())) {
+            ErrorHandling.printError(ctx,"Couldn't define automaton. Variable name taken.");
+         }
+      }
+      return res;
    }
 
    // #TODO: se der erro aqui dentro, nao fazer visit nas cenas do view
@@ -243,6 +253,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       Boolean res = null;
       // O ID do for apenas existe enquanto o for existir
       String forVarID = ctx.ID().getText();
+      String[] statesInLoopExpr;
       // TODO: Aqui não tenho a certeza se o type dos elementos da lista é obrigatoriamente estados
       // para já, vou assumir que os elementos da lista são states
       currentSymbolTable.putSymbol(forVarID, new Symbol(STATE_TYPE));
@@ -253,6 +264,11 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       {
          ErrorHandling.printError(ctx, String.format("Invalid type of expression in AutomatonFor. Correct use -> for [id] in [list]"));
          ErrorHandling.registerError();
+      } else {
+         statesInLoopExpr = ctx.expr().getText().replace("{", "").replace("}", "").split(",");
+         for (String curr_state_from_loopExpr : statesInLoopExpr) {
+            loopStates.add(curr_state_from_loopExpr);
+         }         
       }
       // Depois disto, chamar os automatonStats
       if (ctx.automatonStat().size() == 1)
@@ -263,6 +279,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
             visit(ctx.automatonStat(i));
       }
       currentSymbolTable.removeSymbol(forVarID);
+      loopStates.clear();
       return res;
    }
 
@@ -315,33 +332,62 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitPropertiesDef(advParser.PropertiesDefContext ctx) {
       Boolean res = null;
-      String stateID = ctx.ID().getText();
-      currentStateString = stateID;
+      String stateID;
       String propertyKey;
-      Symbol stateSymbol = currentSymbolTable.findSymbol(stateID);
-      
-      if (stateSymbol == null) {
-         ErrorHandling.printError(ctx,String.format("Can't define property for state \"%s\". Symbol not found.", stateID));
-         ErrorHandling.registerError();
-      } else {
-         if (stateSymbol.type() != STATE_TYPE) {
-            // TODO: fazer este print de erro
-            System.err.println();
-            ErrorHandling.registerError();
-         } else {
-            for (int i = 0; i < ctx.propertyElement().size(); i++) {
-               visit(ctx.propertyElement(i));
-               propertyKey = valuesToString.get(ctx.propertyElement(i));
-               if (!propertyKey.equals("initial") && !propertyKey.equals("accepting"))
-               {
+      Symbol stateSymbol;
+      if (loopStates.size() != 0) {    // no caso de haver uma definição dentro de um loop. ver testing_files/CDFAError.txt linha 9 para referência
+         for (String curr_state_in_loop : loopStates) {
+            stateID = curr_state_in_loop;
+            currentStateString = stateID;
+            stateSymbol = currentSymbolTable.findSymbol(stateID);
+            if (stateSymbol == null) {
+               ErrorHandling.printError(ctx,String.format("Can't define property for state \"%s\". Symbol not found.", stateID));
+               ErrorHandling.registerError();
+            } else {
+               if (stateSymbol.type() != STATE_TYPE) {
+                  // TODO: fazer este print de erro
+                  System.err.println();
                   ErrorHandling.registerError();
-                  ErrorHandling.printError(ctx,String.format("Invalid property key for state \"%s\", must be either 'accepting' or 'initial'.", stateID));
+               } else {
+                  for (int i = 0; i < ctx.propertyElement().size(); i++) {
+                     visit(ctx.propertyElement(i));
+                     propertyKey = valuesToString.get(ctx.propertyElement(i));
+                     if (!propertyKey.equals("initial") && !propertyKey.equals("accepting"))
+                     {
+                        ErrorHandling.registerError();
+                        ErrorHandling.printError(ctx,String.format("Invalid property key for state \"%s\", must be either 'accepting' or 'initial'.", stateID));
+                     }
+                  }
                }
             }
          }
-         
-         
+      } else {
+         stateID = ctx.ID().getText();
+         currentStateString = stateID;
+         stateSymbol = currentSymbolTable.findSymbol(stateID);
+         if (stateSymbol == null) {
+            ErrorHandling.printError(ctx,String.format("Can't define property for state \"%s\". Symbol not found.", stateID));
+            ErrorHandling.registerError();
+         } else {
+            if (stateSymbol.type() != STATE_TYPE) {
+               // TODO: fazer este print de erro
+               System.err.println();
+               ErrorHandling.registerError();
+            } else {
+               for (int i = 0; i < ctx.propertyElement().size(); i++) {
+                  visit(ctx.propertyElement(i));
+                  propertyKey = valuesToString.get(ctx.propertyElement(i));
+                  if (!propertyKey.equals("initial") && !propertyKey.equals("accepting"))
+                  {
+                     ErrorHandling.registerError();
+                     ErrorHandling.printError(ctx,String.format("Invalid property key for state \"%s\", must be either 'accepting' or 'initial'.", stateID));
+                  }
+               }
+            }
+         }
       }
+      
+      
       return res;
    }
 
@@ -423,21 +469,21 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          if (!transitions.isDFAValid())
          {
             ErrorHandling.registerError();
-            ErrorHandling.printError(ctx,"Invalid DFA Transitions!");
+            ErrorHandling.printError(ctx,"Invalid DFA Transitions - Either multiple transitions for a symbol, used a empty string for transition or have duplicate transitions.");
          }
 
       } else if (currAutomatonType == NFA_TYPE) {
          if (!transitions.isNFAValid())
          {
             ErrorHandling.registerError();
-            ErrorHandling.printError(ctx,"Invalid NFA Transitions!");
+            ErrorHandling.printError(ctx,"Invalid NFA Transitions - Duplicate transitions are not allowed.");
          }
 
       } else if (currAutomatonType == COMPLETE_DFA_TYPE) {
          if (!transitions.isCompleteDFAValid(alphabetChars.size()))
          {
             ErrorHandling.registerError();
-            ErrorHandling.printError(ctx,"Invalid Complete DFA Transitions!");
+            ErrorHandling.printError(ctx,"Invalid Complete DFA Transitions - Either multiple transitions for a symbol, used a empty string for transition or have duplicate transitions.");
          }
       }
       
@@ -468,11 +514,17 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       // Verificar se os símbolos que causam a transição estão no alfabeto
       for (int i = 0; i < ctx.SYMBOL().size(); i++) {
          curr_alph_symbol = ctx.SYMBOL(i).getText().charAt(1);
-         if (!alphabetChars.contains(curr_alph_symbol)) {
+         if (curr_alph_symbol == '\'') {
+            if (!transitions.addTransition(fromId, toId, curr_alph_symbol)) {
+               ErrorHandling.registerError();
+               ErrorHandling.printError(ctx,String.format("Duplicate transition: %s -> '' -> %s.", fromId, toId));
+            }
+         } else if (!alphabetChars.contains(curr_alph_symbol)) {
             ErrorHandling.registerError();
             ErrorHandling.printError(ctx,String.format("\"%s\" not found in alphabet.", curr_alph_symbol));
          } else {
             if (!transitions.addTransition(fromId, toId, curr_alph_symbol)) {
+               ErrorHandling.registerError();
                ErrorHandling.printError(ctx,String.format("Duplicate transition: %s -> '%c' -> %s.", fromId, curr_alph_symbol, toId));
             }
          }  
