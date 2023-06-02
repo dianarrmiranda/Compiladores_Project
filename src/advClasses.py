@@ -214,7 +214,7 @@ class Animation:
 
     def play(self):
         for i in range(len(self.animfunc)):
-            t = Thread( target=self.animfunc[i] , args=(self.viewPorts[i],) )
+            t = Thread( target=self.animfunc[i] , args=(self.viewPorts[i],) , name=str(i)+"View")
             self.threads.append(t)
             t.start()
 
@@ -232,7 +232,8 @@ class Animation:
 
 class Grid:
 
-    def __init__(self,widthheigth,step=0.5,margin=0.25,color='gray',line='solid'):
+    def __init__(self,label,widthheigth,step=0.5,margin=0.25,color='gray',line='solid'):
+        self.label=label
         self.width = widthheigth[0]
         self.heigth = widthheigth[1]
         self.step = step
@@ -365,8 +366,8 @@ class ViewPort:
         self.vp = np.zeros((500, 500, 3), dtype="uint8")
         self.vp.fill(255)
 
-    def getstate(self,str: str) -> State:
-        return self.view.getstate(str)
+    def get(self,str: str) :
+        return self.view.get(str)
     
     def gettransition(self,str1: str,str2: str) -> Transition:
         return self.view.gettransition(str1,str2)
@@ -402,7 +403,8 @@ class ViewPort:
 
 class Grid:
 
-    def __init__(self,widthheigth,step=0.5,margin=0.25,color='gray',line='solid'):
+    def __init__(self,label,widthheigth,step=0.5,margin=0.25,color='gray',line='solid'):
+        self.label=label
         self.width = widthheigth[0]
         self.heigth = widthheigth[1]
         self.step = step
@@ -433,6 +435,12 @@ class View:
 
         self.grid = None
 
+    def get(self,str: str) :
+        print(self.grid)
+        if (self.grid and self.grid.label==str) :
+            return self.grid
+        return self.automaton.getstate(str)
+    
     def getstate(self,str: str) -> State:
         return self.automaton.getstate(str)
     

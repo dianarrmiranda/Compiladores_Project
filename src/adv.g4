@@ -89,7 +89,7 @@ playDef: 'play' ID ';';
 decl: type (assign ',')*assign  | type (ID',')*ID  
 ;
 
-algebricOP: ( decl | assign ) ';' ;
+algebricOP: ( expr | decl | assign ) ';' ;
 
 expr:     op=('+'|'-') expr #UnaryExpr
          |'not' expr #NotExpr

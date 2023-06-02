@@ -48,7 +48,7 @@ viewportInstructions(name,instruction) ::=<<def <name>(view):
 
 animation(viewport) ::= "Animation(<array(viewport)>)"
 
-grid(widthheigth) ::= "Grid(widthheigth)"
+grid(name,widthheigth) ::= "Grid(<name>,<widthheigth>)"
 
 play(animation) ::= "<animation>.play()"
 
