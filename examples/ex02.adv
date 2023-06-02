@@ -87,7 +87,7 @@ view v2 of a2 <<<
      * 
      * The 'place .. at' contruction also allows to place labels of transitions
      */
-    place <B,A>#label [align = below] at pa;
+    place <B,A>#label [align = below] at pm;
 >>>
 
 /*
@@ -120,5 +120,5 @@ animation m2 <<<
     >>>
 >>>
 
-play m1;
+play m2;
 

@@ -124,7 +124,7 @@ propertiesKeys: prop=('initial'|'accepting'|'align'|'slope'|'highlighted');
 
 Number:  ('+'|'-')?[0-9]+('.'[0-9]+)?; 
 ID:      [a-zA-Z][a-zA-Z0-9]*;
-SYMBOL:  ['][a-zA-Z0-9]+['] ;
+SYMBOL:  ['][a-zA-Z0-9]*['] ;
 STRING: '"' .*? '"' ;
 
 WS:                [ \t]+ -> skip ;
