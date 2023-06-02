@@ -9,7 +9,7 @@ import javax.smartcardio.TerminalFactory;
 import org.antlr.v4.runtime.tree.*;
 
 @SuppressWarnings("CheckReturnValue")
-public class compilerSimple extends advBaseVisitor<ST> {
+public class advCodeGen extends advBaseVisitor<ST> {
 
    private STGroup templates = new STGroupFile("python.stg");
    private ParseTreeProperty<LinkedList<String>> decl = new ParseTreeProperty();

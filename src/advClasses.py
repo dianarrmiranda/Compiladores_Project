@@ -320,9 +320,10 @@ class Animation:
 
 class Grid:
 
-    def __init__(self,widthheight,step=0.5,margin=0.25,color='gray',line='solid'):
-        self.width = widthheight[0]
-        self.height = widthheight[1]
+    def __init__(self,label,widthheigth,step=0.5,margin=0.25,color='gray',line='solid'):
+        self.label=label
+        self.width = widthheigth[0]
+        self.heigth = widthheigth[1]
         self.step = step
         self.margin = margin
         self.color = color
@@ -427,7 +428,8 @@ class Grid:
         'black': (0, 0, 0),
     }
 
-    def __init__(self,widthheight,step=0.5,margin=0.25,color='gray',line='solid'):
+    def __init__(self,label,widthheight,step=0.5,margin=0.25,color='gray',line='solid'):
+        self.label=label
         self.width = widthheight[0]
         self.height = widthheight[1]
         self.step = step 
@@ -519,6 +521,9 @@ class ViewPort:
 
         self.show_grid = False 
 
+    def get(self,str: str) :
+        return self.view.get(str)
+
     def getstate(self,str: str) -> State:
         return self.view.getstate(str)
     
@@ -573,6 +578,11 @@ class View:
         self.automaton = deepcopy(automaton)  
 
         self.grid = None
+
+    def get(self,str: str) :
+        if (self.grid and self.grid.label==str) :
+            return self.grid
+        return self.automaton.getstate(str)
 
     def getstate(self,str: str) -> State:
         return self.automaton.getstate(str)
