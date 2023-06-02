@@ -45,6 +45,10 @@ class Align(Enum):
     RIGHT = 2
     ABOVE = 3
     BELOW = 4
+    LEFT_ABOVE = 5
+    LEFT_BELOW = 6
+    RIGHT_ABOVE = 7
+    RIGHT_BELOW = 8
 
 #--------------------------------------------------------
 
@@ -120,7 +124,6 @@ class AdvTransitionFigure(AdvFigure):
             p1 = p / scaleFrom * scaleTo
             points.append(p1.roundToInt())
 
-        print(points)
         # draw the arrow, assuming there are at least 2 points
         for i, p in enumerate(points[:-2]):
             cv.line(mat, p, points[i+1], self.strokeColor, self.strokeThickness)
@@ -138,6 +141,14 @@ class AdvTransitionFigure(AdvFigure):
             c = c + Point(-sz[0]/2, sz[1])
         elif self.labelAlignment == Align.BELOW:
             c = c + Point(-sz[0]/2, sz[1]*2)
+        elif self.labelAlignment == Align.LEFT_ABOVE:
+            c = c + Point(0, sz[1])
+        elif self.labelAlignment == Align.LEFT_BELOW:
+            c = c + Point(0, sz[1]*2)
+        elif self.labelAlignment == Align.RIGHT_ABOVE:
+            c = c + Point(-sz[0], sz[1])
+        elif self.labelAlignment == Align.RIGHT_BELOW:
+            c = c + Point(-sz[0], sz[1]*2)
         center = c.roundToInt()
         cv.putText(mat, self.label, center, cv.FONT_HERSHEY_SIMPLEX, 0.8, self.strokeColor,self.strokeThickness)
 
@@ -172,6 +183,14 @@ class AdvLoopTransitionFigure(AdvTransitionFigure):
             self.labelAlignment = Align.LEFT
         elif align == 'RIGHT':
             self.labelAlignment = Align.RIGHT
+        elif align == 'LEFT ABOVE' or align == 'ABOVE LEFT':  
+            self.labelAlignment = Align.LEFT_ABOVE
+        elif align == 'RIGHT ABOVE' or align == 'ABOVE RIGHT':
+            self.labelAlignment = Align.RIGHT_ABOVE
+        elif align == 'LEFT BELOW' or align == 'BELOW LEFT':
+            self.labelAlignment = Align.LEFT_BELOW
+        elif align == 'RIGHT BELOW'or align == 'BELOW RIGHT':
+            self.labelAlignment = Align.RIGHT_BELOW
         else:
             raise ValueError("Invalid alignment value")
 #--------------------------------------------------------
@@ -202,6 +221,14 @@ class AdvLineTransitionFigure(AdvTransitionFigure):
             self.labelAlignment = Align.LEFT
         elif align == 'RIGHT':
             self.labelAlignment = Align.RIGHT
+        elif align == 'LEFT ABOVE' or align == 'ABOVE LEFT':  
+            self.labelAlignment = Align.LEFT_ABOVE
+        elif align == 'RIGHT ABOVE' or align == 'ABOVE RIGHT':
+            self.labelAlignment = Align.RIGHT_ABOVE
+        elif align == 'LEFT BELOW' or align == 'BELOW LEFT':
+            self.labelAlignment = Align.LEFT_BELOW
+        elif align == 'RIGHT BELOW'or align == 'BELOW RIGHT':
+            self.labelAlignment = Align.RIGHT_BELOW
         else:
             raise ValueError("Invalid alignment value")
 
@@ -234,6 +261,14 @@ class AdvCurveTransitionFigure(AdvTransitionFigure):
             self.labelAlignment = Align.LEFT
         elif align == 'RIGHT':
             self.labelAlignment = Align.RIGHT
+        elif align == 'LEFT ABOVE' or align == 'ABOVE LEFT':  
+            self.labelAlignment = Align.LEFT_ABOVE
+        elif align == 'RIGHT ABOVE' or align == 'ABOVE RIGHT':
+            self.labelAlignment = Align.RIGHT_ABOVE
+        elif align == 'LEFT BELOW' or align == 'BELOW LEFT':
+            self.labelAlignment = Align.LEFT_BELOW
+        elif align == 'RIGHT BELOW'or align == 'BELOW RIGHT':
+            self.labelAlignment = Align.RIGHT_BELOW
         else:
             raise ValueError("Invalid alignment value")
     
@@ -285,9 +320,9 @@ class Animation:
 
 class Grid:
 
-    def __init__(self,widthheigth,step=0.5,margin=0.25,color='gray',line='solid'):
-        self.width = widthheigth[0]
-        self.heigth = widthheigth[1]
+    def __init__(self,widthheight,step=0.5,margin=0.25,color='gray',line='solid'):
+        self.width = widthheight[0]
+        self.height = widthheight[1]
         self.step = step
         self.margin = margin
         self.color = color
@@ -304,10 +339,7 @@ class Grid:
 
     def setline(self,val):
         self.line = val
-
-    def draw():
-        pass
-        
+    
 
 class State:
 
@@ -370,7 +402,6 @@ class Transition:
         self.lablepos = val
 
     def addpoint(self,point,slope=-1) -> None:
-        print("point: " + str(point))
         self.points.insert(-1,point)
         self.slope.append(slope)
 
@@ -382,6 +413,68 @@ class Transition:
     
     def __repr__(self) -> str:
         return str(self)
+    
+class Grid:
+    COLORS = {
+        'gray': (128, 128, 128),
+        'red': (255, 0, 0),
+        'green': (0, 255, 0),
+        'blue': (0, 0, 255),
+        'yellow': (255, 255, 0),
+        'magenta': (255, 0, 255),
+        'cyan': (0, 255, 255),
+        'white': (255, 255, 255),
+        'black': (0, 0, 0),
+    }
+
+    def __init__(self,widthheight,step=0.5,margin=0.25,color='gray',line='solid'):
+        self.width = widthheight[0]
+        self.height = widthheight[1]
+        self.step = step 
+        self.margin = margin 
+        self.color = self.parse_color(color.strip())
+        self.line = line
+
+    def setstep(self,val):
+        self.step = val 
+
+    def setmargin(self,val):
+        self.margin = val 
+
+    def setcolor(self,val):
+        self.color = self.parse_color(val.strip())
+
+    def setline(self,val):
+        self.line = val
+
+    def parse_color(self, color_str):
+        color_str = color_str.lower()
+        if color_str in self.COLORS:
+            return self.COLORS[color_str]
+        else:
+            raise ValueError('Cor inválida: {}'.format(color_str))
+    
+    def show(self, window, hei, wid):
+        # Calculate the number of rows and columns of rectangles
+        num_rows = int(hei / self.height)
+        num_cols = int(wid / self.width)
+
+        img_rectangles = window.copy()
+        # Iterate over the rows and columns to draw the rectangles
+        for row in range(num_rows):
+            for col in range(num_cols):
+                # Calculate the position of the rectangle
+                x1 = col * self.width
+                y1 = row * self.height
+                x2 = x1 + self.width
+                y2 = y1 + self.height
+
+                # Draw the rectangle on the image
+                cv.rectangle(img_rectangles, (x1, y1), (x2, y2), self.color, thickness=1)
+
+        img_combined = cv.addWeighted(window, 0.5, img_rectangles, 0.5, 0)
+        # Show the combined image
+        cv.imshow('Animation', img_combined)
 
 class ViewPort:
 
@@ -408,7 +501,6 @@ class ViewPort:
             point2 = transition.stateEnd.pos
             point3 = transition.points
             labelAlign = transition.alignlabel
-            print("point3: " + str(point3))
             if stateStart == stateEnd:
                 self.f = AdvLoopTransitionFigure(trans, transition.label, Point(point1[0], point2[1]),labelAlign)
                 self.av.addFigure(trans, self.f)
@@ -419,11 +511,13 @@ class ViewPort:
                 self.f = AdvLineTransitionFigure(trans, transition.label, Point(point1[0], point1[1]), Point(point2[0], point2[1]), labelAlign)
                 self.av.addFigure(trans, self.f)
 
-        self.window = np.zeros((510, 510, 3), dtype="uint8")
+        self.window = np.zeros((cornerTop[1]+10,cornerTop[0]+10, 3), dtype="uint8")
         self.window.fill(100)
 
-        self.vp = np.zeros((500, 500, 3), dtype="uint8")
+        self.vp = np.zeros((cornerTop[1], cornerTop[0], 3), dtype="uint8")
         self.vp.fill(255)
+
+        self.show_grid = False 
 
     def getstate(self,str: str) -> State:
         return self.view.getstate(str)
@@ -432,6 +526,7 @@ class ViewPort:
         return self.view.gettransition(str1,str2)
 
     def show(self, *args):
+        
         for arg in args:
             if arg.__class__ == State:
                 self.states.append(arg)
@@ -440,13 +535,21 @@ class ViewPort:
             if arg.__class__ == Transition:
                 self.av.figures['<'+arg.stateStart.label+','+arg.stateEnd.label+'>'].visible = True
             
+            if arg.__class__ == Grid:
+                self.grid = arg
+                self.show_grid = True
+            
         for state in self.states:
             if state.accepting.strip() == 'true':
                 self.av.figures[state.label].accepting = True;
-
+        
         self.av.draw(self.vp, 1.0, 50)
-        np.copyto(self.window[10:,10:,:], self.vp)
-        cv.imshow('Animation a1', self.window)
+        np.copyto(self.window[self.cornerBottom[0]:,self.cornerBottom[1]:,:], self.vp)
+
+        if self.show_grid:
+            self.grid.show(self.window, self.cornerTop[1], self.cornerTop[0])
+        else: 
+            cv.imshow('Animation a1', self.window)
 
     def pause(self):
         print("------------------------------------------")
@@ -459,27 +562,6 @@ class ViewPort:
     def __repr__(self) -> str:
         return str(self)
 
-class Grid:
-
-    def __init__(self,widthheigth,step=0.5,margin=0.25,color='gray',line='solid'):
-        self.width = widthheigth[0]
-        self.heigth = widthheigth[1]
-        self.step = step
-        self.margin = margin
-        self.color = color
-        self.line = line
-
-    def setstep(self,val):
-        self.step = val
-
-    def setmargin(self,val):
-        self.margin = val
-
-    def setcolor(self,val):
-        self.color = val
-
-    def setline(self,val):
-        self.line = val
 
 class View:
 
@@ -522,7 +604,7 @@ class Automaton:
         self.transitions=transitions
     
     def getstate(self,str: str) -> State:
-        i= list(map(lambda x : x.label,self.states)).index(str) 
+        i = list(map(lambda x : x.label,self.states)).index(str) 
         return self.states[i]
     
     def gettransition(self,str1: str,str2: str) -> Transition:
