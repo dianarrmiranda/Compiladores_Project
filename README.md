@@ -27,7 +27,8 @@
 
 ### __Introdução__
 
-- Relatório para a linguagem adv do grupo P4-G2 para a unidade curricular de Compiladores 2022/2023.
+Relatório para a linguagem adv do grupo P4-G2 para a unidade curricular de Compiladores 2022/2023.
+<br />
 - Foi nos proposto, como projeto final, o desenvolvimento de uma linguagem de programação designada por adv (automata description and visualization), bem como as correspondentes ferramentas necessárias para a compilação da mesma, que permita a criação de programas numa linguagem de programação genérica, para o nosso caso essa linguagem foi o Python.
 - Esta linguagem tem como principal funcionalidade permitir a definição de automatos bem como a visualização da sua estrutura.
 - Para nós desenvolvermos o nosso projeto utilizámos a ferramenta __ANTLR4__ como *Parser Generator* implementado em *Java* para a linguagem principal e em *Python* para a linguagem secundária, sendo que a nossa linguagem alvo é o *Python*, pois usámos a livraria *OpenCV* para a representação dos autómatos.
