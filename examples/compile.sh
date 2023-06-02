@@ -1,6 +1,6 @@
 #!/bin/bash
 
-usage() { echo "Usage: $0 -i <path_file_to_compile> [-o <path_to_output_file>] [-c <path_to_compiler>]" 1>&2; exit 1; }
+usage() { echo "Usage: $0 -i <path_file_to_compile> [-o <path_to_output_file>] [-c <path_to_compiler>] [-h]" 1>&2; exit 1; }
 help() { echo "Usage: $0 -i <path_file_to_compile> [-o <path_to_output_file>] [-c <path_to_compiler>]" ; 
          echo " Compiles .adv file using advCompiler.";
          echo " -i is mandatory and it's the path to file to be compiled. It must end in .adv"

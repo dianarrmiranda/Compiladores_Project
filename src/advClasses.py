@@ -1,4 +1,3 @@
-from asyncio import wait
 from copy import deepcopy
 from numpy import array, ndarray ,matrix , cos , sin , pi, sqrt
 import numpy as np
@@ -219,8 +218,8 @@ class Animation:
             self.threads.append(t)
             t.start()
 
-        for i in self.threads:
-            i.join()
+        # for i in self.threads:
+        #     i.join()
 
     def add(self,func):
         self.animfunc.append(func)
@@ -383,7 +382,7 @@ class ViewPort:
                 self.av.figures['<'+arg.stateStart.label+','+arg.stateEnd.label+'>'].visible = True
             
         for state in self.states:
-            if state.accepting == 'true':
+            if state.accepting.strip() == 'true':
                 self.av.figures[state.label].accepting = True;
 
         self.av.draw(self.vp, 1.0, 50)
