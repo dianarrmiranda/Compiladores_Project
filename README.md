@@ -30,8 +30,8 @@
 Relatório para a linguagem adv do grupo P4-G2 para a unidade curricular de Compiladores 2022/2023.
 <br />
 - Foi nos proposto, como projeto final, o desenvolvimento de uma linguagem de programação designada por adv (automata description and visualization), bem como as correspondentes ferramentas necessárias para a compilação da mesma, que permita a criação de programas numa linguagem de programação genérica, para o nosso caso essa linguagem foi o Python.
-- Esta linguagem tem como principal funcionalidade permitir a definição de automatos bem como a visualização da sua estrutura.
-- Também nos foi proposto desenvolvermos uma linguagem secundário, designada por xAdv, que permite auxilar a linguagem adv, ao permitir a definição de estilos para o autómato, como a forma de cada estado, o tamanho da fonte de texto das etiquetas dos estados e das transições, a cor dos estados e transições, entre outros.
+- Esta linguagem tem como principal funcionalidade permitir a definição de autómatos bem como a visualização da sua estrutura.
+- Também nos foi proposto desenvolvermos uma linguagem secundária, designada por xAdv, que permite auxilar a linguagem adv, ao permitir a definição de estilos para o autómato, como a forma de cada estado, o tamanho da fonte de texto das etiquetas dos estados e das transições, a cor dos estados e transições, entre outros.
 - Para nós desenvolvermos o nosso projeto utilizámos a ferramenta __ANTLR4__ como *Parser Generator* implementado em __Java__ para a linguagem principal, adv, e em __Python__ para a linguagem secundária, xadv, sendo que a nossa linguagem alvo é o __Python__, pois usámos a livraria __OpenCV__ para a representação dos autómatos.
 
 <br />
@@ -43,7 +43,7 @@ Foram definidos 4 níveis para a realização deste projeto:
 - Nível adicional;
 - Desafio;
 
-O nosso grupo conseguiu cumprir totalmente  os requisitos definidos no nível mínimo, que consistiam em:
+O nosso grupo conseguiu cumprir totalmente  os requisitos definidos no nível mínimo, que consistem em:
 - Construir a gramática que conseguisse abrangir as seguintes funcionalidades:
   1. Definir um alfabeto;
   2. Definir autómatos finitos dos tipos não-deterministas, deterministas e determinista completo;
@@ -59,14 +59,14 @@ O nosso grupo conseguiu cumprir totalmente  os requisitos definidos no nível m�
 
 <br />
 
-#### __Definir um alfabeto__
+#### __Definição de um alfabeto__
 ---
 Exemplo:
 ``` 
 alphabet { 'a', 'b', 'c' }
 ```
-- Para se definir um alfabeto em adv é necessário incluir a instrução referida acima, esta instrução irá definir um alfabeto, em que os elementos pertencentes a este iram pertencer a transições presentes num autómato. 
-- Para esta instrução é necessário verificar se o alfabeto é um conjunto não vazio, se os símbolos presentes são sempre representados por caracteres entre plicas, limitados às letras e a algarismos decimais e estes não podem ser repetidos.
+- Para se definir um alfabeto em adv é necessário incluir a instrução referida acima, os elementos pertencentes a este iram pertencer a transições presentes num autómato. 
+- Para esta instrução é necessário verificar se o alfabeto é um conjunto não vazio, se os símbolos presentes são sempre representados por caracteres entre plicas, limitados a letras e a algarismos decimais e estes não podem ser repetidos.
 
 <br />
 
@@ -83,9 +83,9 @@ DFA a2 <<< >>>
 /* Autómato finito determinístico completo */
 complete DFA a3 <<< >>>
 ```
-- A instrução acima mostra como se deve definir um automato de entre os 3 tipos disponíveis. Esta instrução encontra-se divida em 3 partes:
+- A instrução acima mostra como  definir um automato de entre os 3 tipos disponíveis para a linguagem adv. Esta instrução encontra-se divida em 3 partes:
   1. Indicação do tipo do autómato;
-  2. Indicação do nome deste;
+  2. Indicação do ID deste;
   3. Dentro dos elementos "<<< >>>" irá se definir os estados e as transições que constituem o autómato.
 
 - Nesta instrução, relativamente à análise semântica, foi necessário se o tipo do autómato especificado era correto e se o id do autómato já foi definido anteriormente.
