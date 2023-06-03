@@ -38,7 +38,7 @@ Relatório para a linguagem adv do grupo P4-G2 para a unidade curricular de Comp
 
 ### Requisitos
 Foram definidos 4 níveis para a realização deste projeto:
-- Nível minímo;
+- Nível mínimo;
 - Nível desejável;
 - Nível adicional;
 - Desafio;
@@ -55,7 +55,7 @@ O nosso grupo conseguiu cumprir totalmente  os requisitos definidos no nível m�
   8. Definições de instruções de iteração sobre os elementos de uma lista;
   9. Verificação semântica para os elementos referidos anteriormente;
 
-### Nível Minímo
+### Nível Mínimo
 
 <br />
 
