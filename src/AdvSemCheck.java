@@ -581,6 +581,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitViewFor(advParser.ViewForContext ctx) {
       Boolean res = null;
+
       // O ID do for apenas existe enquanto o for existir
       String forVarID = ctx.ID().getText();
       // TODO: Aqui não tenho a certeza se o type dos elementos da lista é obrigatoriamente estados
@@ -1142,6 +1143,8 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
             valuesToString.put(ctx, "number");
          else if (idSymbol.type() == STRING_TYPE)
             valuesToString.put(ctx, "string");
+         else if (idSymbol.type() == LIST_TYPE)
+            valuesToString.put(ctx, "list");
       }
       return visitChildren(ctx);
       //return res;
@@ -1156,14 +1159,31 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitUnaryExpr(advParser.UnaryExprContext ctx) {
       Boolean res = null;
-      return visitChildren(ctx);
-      //return res;
+      // este nó devolve o mesmo type que o type da expressão que este contém
+      visit(ctx.expr());
+      String exprType;
+      exprType = valuesToString.get(ctx.expr());
+      if (exprType != null) {
+         valuesToString.put(ctx, exprType);
+      }
+
+      return res;
    }
 
    @Override public Boolean visitParanthesisExpr(advParser.ParanthesisExprContext ctx) {
-      Boolean res = null;
+      /*  
+         Há dois casos em que se entra aqui: expressão booleana e expressão aritmetica com parentesis (ex: (10 > 20) ou (1 + 1))
+         - se for booleana, vai devolver true/false;
+         - se for aritmetica, vai meter no ParseTreeProperty valuesToString, 
+         o tipo do valor de dentro, para a analise semantica nos nós pais;
+
+         Para o primeiro caso, basta devolver o valor que visit(ctx.expr()) devolve, pois eu desenhei as expressões booleanas dessa forma,
+         basicamente devolvem uma cadeira de true/false's para saber se são expressões booleanas válidas ou não
+
+         No caso de ser aritmetica, uso o ParseTreeProperty
+      */
+      Boolean res = visit(ctx.expr());
       String exprType;
-      visit(ctx.expr());
       // o valor guardado pelo ctx.expr em valuesToString 
       // vai ser passado pelo ctx atual, pois apenas adiciona parentesis à volta
       exprType = valuesToString.get(ctx.expr());
@@ -1248,6 +1268,21 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       Boolean res = null;
       // USADO NO AUTOMATONFOR para verificar se Expr é uma lista
       valuesToString.put(ctx, "list");
+      String[] IDs_from_list = ctx.list().getText().replace("{", "").replace("}", "").split(",");
+      // verificar se os valores definidos na lista são válidos para o scope atual
+      Symbol curr_symbol;
+      // ver o type do primeiro elemento da lista. todos têm de ser do mesmo senão é incompativel
+      Type values_type = currentSymbolTable.findSymbol(IDs_from_list[0]).type();
+      for (String current_id : IDs_from_list) {
+         curr_symbol = currentSymbolTable.findSymbol(current_id);
+         if (curr_symbol == null) {
+            ErrorHandling.printError(ctx, String.format("Symbol \"%s\" not found in list definition.", current_id));
+            ErrorHandling.registerError();
+         } else if (curr_symbol.type() != values_type) {
+            ErrorHandling.printError(ctx, String.format("Type \"%s\" invalid for list with type \"%s\".", curr_symbol.type().name(), values_type.name()));
+            ErrorHandling.registerError();
+         }
+      }
       return res;
    }
 
@@ -1256,9 +1291,11 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       Boolean res = null;
       visit(ctx.expr(0));     // visita a expressão da esquerda
       visit(ctx.expr(1));     // visita a expressão da direita
+
       String leftExprType, rightExprType;
       leftExprType = valuesToString.get(ctx.expr(0));
       rightExprType = valuesToString.get(ctx.expr(1));
+
       // Se forem do mesmo type, é valido
       if (leftExprType != null && rightExprType != null && leftExprType.equals(rightExprType)) {
          valuesToString.put(ctx, leftExprType); // leftexprtype ou rightexprtype é a mesma coisa
