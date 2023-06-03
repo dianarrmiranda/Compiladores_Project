@@ -267,23 +267,16 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       visit(ctx.expr());
       // Verificar se o expr devolve uma lista
       String typeExpr = valuesToString.get(ctx.expr());
-      if (!typeExpr.equals("list"))
+      if (!typeExpr.equals("list"))    // expressão inválida para o loop
       {
          ErrorHandling.printError(ctx, String.format("Invalid type of expression in AutomatonFor. Correct use -> for [id] in [list]"));
          ErrorHandling.registerError();
-      } else {
+      } else {       // loop valido
          statesInLoopExpr = ctx.expr().getText().replace("{", "").replace("}", "").split(",");
          for (String curr_state_from_loopExpr : statesInLoopExpr) {
             loopStates.add(curr_state_from_loopExpr);
-         }         
-      }
-      // Depois disto, chamar os automatonStats
-      if (ctx.automatonStat().size() == 1)
-      {
-         visit(ctx.automatonStat(0));
-      } else
-         for (int i = 0; i < ctx.automatonStat().size(); i++) {
-            visit(ctx.automatonStat(i));
+         }
+         visitChildren(ctx);           // so verificar as expressões dentro do loop se for um loop valido
       }
       currentSymbolTable.removeSymbol(forVarID);
       loopStates.clear();
