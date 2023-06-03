@@ -1,5 +1,7 @@
 import org.stringtemplate.v4.*;
 import java.util.HashMap;
+import java.util.HashSet;
+
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import java.util.LinkedList;
 import java.util.List;
@@ -344,9 +346,9 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   private HashSet<String> newVarViewport = new HashSet<>();
    @Override
    public ST visitViewportFor(advParser.ViewportForContext ctx) {
-      onFor = true;
       ST res = templates.getInstanceOf("stats");
       ST forV = templates.getInstanceOf("forIn");
 
@@ -354,6 +356,7 @@ public class advCodeGen extends advBaseVisitor<ST> {
 
       String loopVar = newVar();
       setVar(ctx.ID().getText(), loopVar);
+      newVarViewport.add(ctx.ID().getText());
       forV.add("var", loopVar);
       forV.add("list", decl.get(ctx.expr()).get(0));
 
@@ -361,7 +364,6 @@ public class advCodeGen extends advBaseVisitor<ST> {
          forV.add("stat", visit(c).render());
 
       res.add("stat", forV.render());
-      onFor=false;
       return res;
    }
 
@@ -649,6 +651,7 @@ public class advCodeGen extends advBaseVisitor<ST> {
    @Override
    public ST visitViewportOn(advParser.ViewportOnContext ctx) {
       onViewport = true;
+      newVarViewport = new HashSet<>();
       ST viewP = templates.getInstanceOf("viewportInstructions");
 
       String var = newVar();
@@ -667,7 +670,6 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return viewP;
    }
 
-   private boolean onFor = false;
    @Override
    public ST visitCompound(advParser.CompoundContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -689,7 +691,7 @@ public class advCodeGen extends advBaseVisitor<ST> {
 
             get.add("var", "view");
 
-            if(!onFor)
+            if(!newVarViewport.contains(c.ID().getText()))
                get.add("value", "'" + c.ID().getText() + "'");
             else
                get.add("value",getVar( c.ID().getText() ));
@@ -833,11 +835,11 @@ public class advCodeGen extends advBaseVisitor<ST> {
    public ST visitIDExpr(advParser.IDExprContext ctx) {
       ST res = templates.getInstanceOf("stats");
       LinkedList<String> l = new LinkedList<>();
-      if(onViewport){
-         ST get = templates.getInstanceOf("get");
-         get.add("var","view");
-         get.add("value","'"+ctx.ID().getText()+"'");
-         l.add(get.render());
+      if(onViewport && !newVarViewport.contains(ctx.ID().getText())){
+            ST get = templates.getInstanceOf("get");
+            get.add("var","view");
+            get.add("value","'"+ctx.ID().getText()+"'");
+            l.add(get.render());
       }
       else
          l.add(getVar(ctx.ID().getText()));
@@ -1069,11 +1071,29 @@ public class advCodeGen extends advBaseVisitor<ST> {
 
    @Override
    public ST visitAssign(advParser.AssignContext ctx) {
-      ST res = visitChildren(ctx);
+      ST res = templates.getInstanceOf("stats");
+      ST ass = templates.getInstanceOf("assign");
+      res.add("stat",visit(ctx.expr()).render());
 
-      decl.put(ctx, decl.get(ctx.expr()));
-      setVar(ctx.ID().getText(), decl.get(ctx.expr()).get(0));
+      String var = "";
+      if(getVar(ctx.ID().getText()).equals("")){
+         var = newVar();
+         LinkedList<String> l = new LinkedList<>();
+         l.add(var);
+         decl.put(ctx, l);
+         setVar(ctx.ID().getText(), var);
+         newVarViewport.add(ctx.ID().getText());
+      }
+      else{
+         var = getVar(ctx.ID().getText());
+      }
 
+      if(onViewport)
+         newVarViewport.add(ctx.ID().getText());
+
+      ass.add("var",var);
+      ass.add("value",decl.get(ctx.expr()));
+      res.add("stat",ass.render());
       return res;
    }
 
@@ -1082,7 +1102,7 @@ public class advCodeGen extends advBaseVisitor<ST> {
       ST res = templates.getInstanceOf("array");
 
       for (TerminalNode c : ctx.ID()) {
-         if(onViewport)
+         if(onViewport && !newVarViewport.contains(c.getText()))
             res.add("elem", "'"+c.getText()+"'" );
          else
             res.add("elem", getVar(c.getText()));

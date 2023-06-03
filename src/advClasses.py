@@ -272,6 +272,40 @@ class AdvCurveTransitionFigure(AdvTransitionFigure):
     
 #--------------------------------------------------------
 
+class AdvSlopeTransitionFigure(AdvTransitionFigure):
+     def __init__(self, key, label, points,slopes , labelpos ,align):
+        super().__init__(key, label)
+
+        self.strokeColor = (255,0,0)
+
+        spline = HermiteSpline(points,slopes)
+        for i in spline:
+            self.arrowPoints.append(Point(i[0],i[1]))
+
+        self.labelReferencePoint = Point(labelpos[0],labelpos[1])
+        # convert align string to enum value
+        if align == 'BELOW':
+            self.labelAlignment = Align.BELOW
+        elif align == 'ABOVE':
+            self.labelAlignment = Align.ABOVE
+        elif align == 'CENTERED':
+            self.labelAlignment = Align.CENTERED
+        elif align == 'LEFT':
+            self.labelAlignment = Align.LEFT
+        elif align == 'RIGHT':
+            self.labelAlignment = Align.RIGHT
+        elif align == 'LEFT ABOVE' or align == 'ABOVE LEFT':  
+            self.labelAlignment = Align.LEFT_ABOVE
+        elif align == 'RIGHT ABOVE' or align == 'ABOVE RIGHT':
+            self.labelAlignment = Align.RIGHT_ABOVE
+        elif align == 'LEFT BELOW' or align == 'BELOW LEFT':
+            self.labelAlignment = Align.LEFT_BELOW
+        elif align == 'RIGHT BELOW'or align == 'BELOW RIGHT':
+            self.labelAlignment = Align.RIGHT_BELOW
+        else:
+            raise ValueError("Invalid alignment value")
+
+
 class AdvAutomatonView:
     def __init__(self):
         self.name = ""
@@ -403,7 +437,7 @@ class Transition:
         self.lablepos = val
 
     def addpoint(self,point,slope=-1) -> None:
-        self.points.insert(-1,point)
+        self.points.append(point)
         self.slope.append(slope)
 
     def __str__(self) -> str:
@@ -479,7 +513,7 @@ class ViewPort:
 
     def __init__(self,view,cornerBottom,cornerTop):
         
-        self.view = view
+        self.view = deepcopy(view)
 
         self.cornerBottom = cornerBottom
 
@@ -500,7 +534,11 @@ class ViewPort:
             point2 = transition.stateEnd.pos
             point3 = transition.points
             labelAlign = transition.alignlabel
-            if stateStart == stateEnd:
+            labelPos = transition.lablepos
+            if len(transition.slope)>0:
+                self.f = AdvSlopeTransitionFigure(trans, transition.label, point3,transition.slope,labelPos,labelAlign)
+                self.av.addFigure(trans, self.f)
+            elif stateStart == stateEnd:
                 self.f = AdvLoopTransitionFigure(trans, transition.label, Point(point1[0], point2[1]),labelAlign)
                 self.av.addFigure(trans, self.f)
             elif (stateStart > stateEnd):
@@ -518,8 +556,12 @@ class ViewPort:
 
         self.show_grid = False 
 
-    def get(self,str: str) :
-        return self.view.get(str)
+    def get(self,t) :
+        if t.__class__ == State:
+            return self.view.get(t.label)
+        if t.__class__ == Transition:
+            return self.view.get(t.label)
+        return self.view.get(t)
 
     def getstate(self,str: str) -> State:
         return self.view.getstate(str)
@@ -540,7 +582,18 @@ class ViewPort:
             if arg.__class__ == Grid:
                 self.grid = arg
                 self.show_grid = True
-            
+
+        if len(args) == 0:
+            aut = self.view.automaton
+            for s in aut.states:
+                self.states.append(s)
+                self.av.figures[s.label].visible = True
+            for t in aut.transitions:
+                self.av.figures['<'+t.stateStart.label+','+t.stateEnd.label+'>'].visible = True
+            if self.view.grid:
+                self.grid = self.view.grid
+                self.show_grid = True
+
         for state in self.states:
             if state.accepting.strip() == 'true':
                 self.av.figures[state.label].accepting = True;
@@ -655,12 +708,25 @@ def HermiteSpline(points: list,tangents: list,scales:list=[],res=25) -> list:
     # This makes it so the curvature is proportional to distance between points which seems natural
     def absP(P):
         return sqrt( P[0]**2 + P[1] **2 )
+    def dotP(P1,P2):
+        return P1[0]*P2[0]+P1[1]*P2[1]
     if len(scales) == 0:
         a = [ absP( points[x]-points[x+1] ) for x in range(0,len(points)-1) ]
-        scales = [a[0]]
+        delta = [  points[x+1]-points[x]  for x in range(0,len(points)-1) ]
+        v = [ array([ cos( tangents[i] * pi / 180 ) , -sin( tangents[i] * pi / 180 )  ]) for i in range(len(tangents))]
+        if dotP(delta[0],v[0]) < 0:
+            scales = [a[0]*-1]
+        else:
+            scales = [a[0]]
         for i in range(1,len(points)-1):
-            scales.append( (a[i]+a[i-1])/2 )
-        scales.append(a[len(points)-2])
+            if dotP(delta[i],v[i]) < 0:
+                scales.append( (a[i]+a[i-1])/-2 )
+            else:
+                scales.append( (a[i]+a[i-1])/2 )
+        if dotP(delta[len(points)-2],v[len(points)-1]) < 0:
+            scales.append(a[len(points)-2]*-1)
+        else:
+            scales.append(a[len(points)-2])
 
     # Define Hermite matrix
     H = matrix([[ 1, 0, 0, 0],
@@ -676,7 +742,7 @@ def HermiteSpline(points: list,tangents: list,scales:list=[],res=25) -> list:
     def hermiteSpline2Points(P1,P2,v1,v2,t):
         P = array([P1,v1,P2,v2])
         r = array(T(t)*H*P)
-        return array([int(r[0,0]),int(r[0,1])])
+        return array([r[0,0],r[0,1]])
     
     # Convert tagents to velocity
     # invert y because higher values are down
