@@ -143,7 +143,18 @@ A animação de um autómato consiste num conjunto de instruções que permitem 
 A tabela seguinte apresenta instruções que podem existir dentro de uma animação:
 | Instrução | Descrição |
 | :---: | :---: |
-| viewport vp1 for v1 at (10,10) -- ++(500,500); | Criar uma viewport para a view v1 com um tamanho de 10x10 no canto superior esquerdo |
+| ``` viewport vp1 for v1 at (10,10) -- ++(500,500); ``` | Criar uma viewport para a view v1 no ponto (10,10), com um tamanho de 500x500 |
+| ``` on vp1 <<< >>> ``` | Para definir quais os elementos que vão ficar visíveis na viewport terá de se escrever esta instrução, tendo de sido feito na anaĺise semântica a verificação de se a viewport referida existe. 
+| ``` show B [accepting = true]; ``` | Esta instrução tem como objetivo indicar quais são os estados que vão ser representados na tela e definir o estado indicado como estado de aceitação. Para indicar qual o estado inicial seria [inital = true]. |
+| ``` pause; ``` | Esta instrução tem como funcionalidade parar a animação do autómato, esta só irá retornar quando o utilizador pressionar a tecla right arrow é que a animação irá avançar para o próximo passo. |
+
+<br />
+
+#### __Tipos de dados número, ponto e lista, assim como álgebras que permitam a sua manipulação__
+---
+
+<br />
+
 ## Contribuições
 
 - Use esta secção para expôr as contribuições individuais dos vários elementos do grupo e que
