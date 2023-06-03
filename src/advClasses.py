@@ -138,15 +138,15 @@ class AdvTransitionFigure(AdvFigure):
         elif self.labelAlignment == Align.RIGHT:
             c = c + Point(-sz[0], sz[1]/2)
         elif self.labelAlignment == Align.ABOVE:
-            c = c + Point(-sz[0]/2, sz[1])
+            c = c + Point(-sz[0], -sz[1]/2)
         elif self.labelAlignment == Align.BELOW:
             c = c + Point(-sz[0]/2, sz[1]*2)
         elif self.labelAlignment == Align.LEFT_ABOVE:
-            c = c + Point(0, sz[1])
+            c = c + Point(0, -sz[1]/2)
         elif self.labelAlignment == Align.LEFT_BELOW:
             c = c + Point(0, sz[1]*2)
         elif self.labelAlignment == Align.RIGHT_ABOVE:
-            c = c + Point(-sz[0], sz[1])
+            c = c + Point(-sz[0], -sz[1]/2)
         elif self.labelAlignment == Align.RIGHT_BELOW:
             c = c + Point(-sz[0], sz[1]*2)
         center = c.roundToInt()
@@ -342,7 +342,7 @@ class Grid:
 
 class State:
 
-    def __init__(self, label , accepting = "False" , initial = "False"):
+    def __init__(self, label , accepting = "False" , initial = "False", highlighted = "False"):
         
         self.label = label
 
@@ -352,6 +352,8 @@ class State:
 
         self.pos = array([0,0])
 
+        self.highlighted = highlighted
+
     def setaccepting(self,val) -> None:
         self.accepting = val
 
@@ -360,12 +362,12 @@ class State:
 
     def setpos(self,val) -> None:
         self.pos = val
+    
+    def sethighlighted(self,val) -> None:
+        self.highlighted = val
 
     def getpos(self) -> ndarray:
         return self.pos
-    
-    def draw(self, img):
-        pass
 
     def __str__(self) -> str:
         return str(self.__dict__)
@@ -403,9 +405,6 @@ class Transition:
     def addpoint(self,point,slope=-1) -> None:
         self.points.insert(-1,point)
         self.slope.append(slope)
-
-    def draw(self, img):
-        pass
 
     def __str__(self) -> str:
         return str(self.__dict__)
