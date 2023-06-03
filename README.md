@@ -53,7 +53,7 @@ O nosso grupo conseguiu cumprir totalmente  os requisitos definidos no nível m�
   6. Permitir alterar a alteração das propriedades dos elementos intrínsicos (estado, transição) de um autómato;
   7. Definição dos tipos de dados número, ponto e lista, assim como álgebras que permitam a sua manipulação;
   8. Definições de instruções de iteração sobre os elementos de uma lista;
-  9. Verificação semântica para os elementos referidos anteriormente;
+ - Verificação semântica para os elementos referidos anteriormente;
 
 ### Nível Mínimo
 
