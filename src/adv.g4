@@ -4,7 +4,7 @@ program: alphabetDef stat* EOF
 ;
 stat:(importstat| automatonDef | viewDef | animationDef |playDef);
 
-importstat:'import' ID ';';
+importstat:'import' ID '.txt' ;
 
 alphabetDef : 'alphabet' '{' (alphabetElement',')*alphabetElement '}' |
 'alphabet' ID '-' ID ;

@@ -1,9 +1,10 @@
 module(stat) ::= <<
 from advClasses import *
+import Interpreter
 from numpy import *
 from math import *
-# from xAdvInterpreter import *
-
+styles=False
+string=""
 def main():
     <stats(stat)>
 
@@ -14,7 +15,7 @@ if __name__ == "__main__":
 
 stats(stat) ::= <<
 <if(stat)><stat; separator="\n"><endif>
->>
+>>  
 
 assign(var,value) ::= "<var> = <value>"
 
@@ -41,7 +42,7 @@ automaton(name,state,transition) ::= "Automaton('<name>',<array(state)>,<array(t
 
 view(name,automaton) ::= "View('<name>',<automaton>)"
 
-viewPort(view,cornerBottom,cornerTop) ::= "ViewPort(<view>,<cornerBottom>,<cornerTop>)"
+viewPort(view,cornerBottom,cornerTop) ::= "ViewPort(<view>,<cornerBottom>,<cornerTop>,styles,string)"
 
 viewportInstructions(name,instruction) ::=<<def <name>(view):
     <stats(instruction)>
@@ -85,17 +86,11 @@ else:
     <stats(stat)>
 >>
 
-importS(file) ::= "interpreter=Interpreter(<file>)"
-
-applyInterpreter()::=<<
-    ID=interpreter.pop("ID",-1)
-    type=interpreter.pop("type")
-    if type=="import":
-        
-    if ID != -1:
-        for propertie,value in interpreter:
-            
-        
-
+importS(file) ::=<<
+string=Interpreter.Interpreter("<file>")
+if string !="error":
+    styles=True
+else:
+    styles=False
 >>
 

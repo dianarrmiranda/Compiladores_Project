@@ -1,4 +1,4 @@
-// Generated from /home/tiago/UA/2 Ano/2 Semestre/C/PFinal/c2023-adv-02/src/adv.g4 by ANTLR 4.9.2
+// Generated from /home/tiago/UA/2 Ano/2 Semestre/C/PFinal/c2023-adv-02/examples/adv.g4 by ANTLR 4.9.2
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;

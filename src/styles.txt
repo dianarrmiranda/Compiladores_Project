@@ -1,0 +1,4 @@
+define automaton { 
+    color:red;
+    label: LEFT
+}

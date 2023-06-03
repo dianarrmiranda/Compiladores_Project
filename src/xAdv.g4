@@ -14,7 +14,7 @@ automatonStyle: 'automaton''{'(AutomatonProperty ':' Value)+ '}'//todos os autó
 viewportStyle: 'viewport''{'(ViewportProperty ':' Value)+ '}'
 |Value '{'(ViewportProperty ':' Value)+ '}';
 
-AutomatonProperty:'color'| 'size' | 'font-size' | 'linecolor';
+AutomatonProperty:'color'| 'size' | 'font-size' | 'linecolor' | 'label'; //align labels in automaton, 
 ViewportProperty:'background'| 'height' | 'width' | 'title';
 
 

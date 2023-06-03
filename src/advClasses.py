@@ -53,21 +53,21 @@ class Align(Enum):
 #--------------------------------------------------------
 
 class AdvFigure:
-    def __init__(self, key):
+    def __init__(self, key,color=(0,0,0)):
         self.key = key
         self.referencePoint = Point(0,0)
         self.visible = False
-        self.strokeColor = (0,0,0)
+        self.strokeColor = color
         self.strokeThickness = 2
 
     def draw(self, mat, scaleFrom, scaleTo):
         pass
 
-#--------------------------------------------------------
+#------------------------------------------(0,0,0)--------------
 
 class AdvStateFigure(AdvFigure):
-    def __init__(self, key, origin):
-        super().__init__(key)
+    def __init__(self, key, origin,color=(0,0,0)):
+        super().__init__(key,color)
         self.accepting = False
         self.initial = False
         self.referencePoint = origin
@@ -511,10 +511,9 @@ class Grid:
 
 class ViewPort:
 
-    def __init__(self,view,cornerBottom,cornerTop):
+    def __init__(self,view,cornerBottom,cornerTop,styles=False,string=""):
         
         self.view = deepcopy(view)
-
         self.cornerBottom = cornerBottom
 
         self.cornerTop = cornerTop
@@ -555,6 +554,67 @@ class ViewPort:
         self.vp.fill(255)
 
         self.show_grid = False 
+        
+        if styles:
+            self.applyStyles(string);
+    
+    def refactorTransitions(self,label):
+        for transition in self.view.automaton.transitions:
+            stateStart = transition.stateStart.label
+            stateEnd = transition.stateEnd.label
+            trans = '<'+stateStart+','+stateEnd+'>'
+            point1 = transition.stateStart.pos
+            point2 = transition.stateEnd.pos
+            point3 = transition.points
+            labelAlign = label
+            labelPos = transition.lablepos
+            if len(transition.slope)>0:
+                self.f = AdvSlopeTransitionFigure(trans, transition.label, point3,transition.slope,labelPos,labelAlign)
+                self.av.addFigure(trans, self.f)
+            elif stateStart == stateEnd:
+                self.f = AdvLoopTransitionFigure(trans, transition.label, Point(point1[0], point2[1]),labelAlign)
+                self.av.addFigure(trans, self.f)
+            elif (stateStart > stateEnd):
+                self.f = AdvCurveTransitionFigure(trans, transition.label, Point(point3[0][0], point3[0][1]), Point(point3[1][0], point3[1][1]), Point(point3[2][0], point3[2][1]),labelAlign)
+                self.av.addFigure(trans, self.f)
+            elif (stateStart < stateEnd):
+                self.f = AdvLineTransitionFigure(trans, transition.label, Point(point1[0], point1[1]), Point(point2[0], point2[1]), labelAlign)
+                self.av.addFigure(trans, self.f)
+    
+    def color_to_rgb(self,color:str):
+        color = color.lower() 
+
+        # Dictionary mapping color names to RGB values
+        colors = {
+            'red': (255, 0, 0),
+            'green': (0, 255, 0),
+            'blue': (0, 0, 255),
+            'yellow': (255, 255, 0),
+            'cyan': (0, 255, 255),
+            'magenta': (255, 0, 255),
+            'white': (255, 255, 255),
+            'black': (0, 0, 0)
+        }
+        return colors.get(color, (0,0,0))  # Return RGB tuple if color found, default color otherwise
+    
+    def applyStyles(self,styles:str):
+        color=(0,0,0)
+        for c in range (styles["num"]):
+            estilo=styles[c]
+            label="default"
+            tipo=estilo.pop("type")
+
+            if tipo=="automaton":    
+                if("color" in estilo):
+                    color=self.color_to_rgb(estilo["color"])
+                if("label" in estilo):
+                    label=estilo["label"]
+                self.av = AdvAutomatonView()
+                for state in self.view.automaton.states:
+                    self.f = AdvStateFigure(state.label, Point(state.pos[0], state.pos[1]),color)
+                    self.av.addFigure(state.label, self.f)
+                if label!="default":
+                    self.refactorTransitions(label)
 
     def get(self,t) :
         if t.__class__ == State:
