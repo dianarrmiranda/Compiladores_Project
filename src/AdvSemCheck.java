@@ -140,7 +140,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       return res;
    }
 
-   // #TODO: se der erro aqui dentro, nao fazer visit nas cenas do view
    @Override public Boolean visitAutomatonNFADef(advParser.AutomatonNFADefContext ctx) {
       Boolean res = true;
       numInitialStates = 0;
@@ -272,10 +271,12 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          ErrorHandling.printError(ctx, String.format("Invalid type of expression in AutomatonFor. Correct use -> for [id] in [list]"));
          ErrorHandling.registerError();
       } else {       // loop valido
+         /*
          statesInLoopExpr = ctx.expr().getText().replace("{", "").replace("}", "").split(",");
          for (String curr_state_from_loopExpr : statesInLoopExpr) {
             loopStates.add(curr_state_from_loopExpr);
          }
+         */
          visitChildren(ctx);           // so verificar as expressões dentro do loop se for um loop valido
       }
       currentSymbolTable.removeSymbol(forVarID);
@@ -335,7 +336,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       String stateID;
       String propertyKey;
       Symbol stateSymbol;
-      if (loopStates.size() != 0) {    // no caso de haver uma definição dentro de um loop. ver testing_files/CDFAError.txt linha 9 para referência
+      if (loopStates.size() != 0) {    // no caso de haver uma definição de propriedade dentro de um loop. ver testing_files/CDFAError.txt linha 9 para referência
          for (String curr_state_in_loop : loopStates) {
             stateID = curr_state_in_loop;
             currentStateString = stateID;
@@ -345,8 +346,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
                ErrorHandling.registerError();
             } else {
                if (stateSymbol.type() != STATE_TYPE) {
-                  // TODO: fazer este print de erro
-                  System.err.println();
+                  ErrorHandling.printError(ctx,String.format("Can't define property for symbol \"%s\". Symbol of invalid type '%s'. Must be a state.", stateID, stateSymbol.type().name()));
                   ErrorHandling.registerError();
                } else {
                   for (int i = 0; i < ctx.propertyElement().size(); i++) {
@@ -361,7 +361,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
                }
             }
          }
-      } else {
+      } else {       // no caso de não ser dentro de um loop
          stateID = ctx.ID().getText();
          currentStateString = stateID;
          stateSymbol = currentSymbolTable.findSymbol(stateID);
@@ -370,8 +370,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
             ErrorHandling.registerError();
          } else {
             if (stateSymbol.type() != STATE_TYPE) {
-               // TODO: fazer este print de erro
-               System.err.println();
+               ErrorHandling.printError(ctx,String.format("Can't define property for symbol \"%s\". Symbol of invalid type '%s'. Must be a state.", stateID, stateSymbol.type().name()));
                ErrorHandling.registerError();
             } else {
                for (int i = 0; i < ctx.propertyElement().size(); i++) {
@@ -1276,14 +1275,14 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       for (String current_id : IDs_from_list) {
          curr_symbol = currentSymbolTable.findSymbol(current_id);
          if (curr_symbol == null) {
-            ErrorHandling.printError(ctx, String.format("Symbol \"%s\" not found in list definition.", current_id));
+            ErrorHandling.printError(ctx, String.format("Symbol \"%s\" not found in current symbol table.", current_id));
             ErrorHandling.registerError();
          } else if (curr_symbol.type() != values_type) {
             ErrorHandling.printError(ctx, String.format("Type \"%s\" invalid for list with type \"%s\".", curr_symbol.type().name(), values_type.name()));
             ErrorHandling.registerError();
          }
       }
-      return res;
+      return visitChildren(ctx);
    }
 
    // TODO: verificar que expressões são apenas point ou number
@@ -1366,6 +1365,10 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitList(advParser.ListContext ctx) {
       Boolean res = null;
+      String[] statesInLoopExpr = ctx.getText().replace("{", "").replace("}", "").split(",");
+      for (String curr_state_from_loopExpr : statesInLoopExpr) {
+         loopStates.add(curr_state_from_loopExpr);
+      }
       return visitChildren(ctx);
       //return res;
    }
