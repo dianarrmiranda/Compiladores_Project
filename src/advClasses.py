@@ -566,7 +566,7 @@ class ViewPort:
         if styles:
             self.applyStyles(string);
     
-    def refactorTransitions(self,label,line):
+    def refactorTransitions(self,label,line): #alterar transições associadas à viewport
         for transition in self.view.automaton.transitions:
             stateStart = transition.stateStart.label
             stateEnd = transition.stateEnd.label
@@ -634,7 +634,7 @@ class ViewPort:
 
         return colors.get(color, (0,0,0))  # Return RGB tuple if color found, default color otherwise
     
-    def applyStyles(self,styles:str):
+    def applyStyles(self,styles:str): #aplicar estilos importados pelo Interpreter nos elementos da viewport
         print("Applying styles")
         color=(0,0,0)
         line=(0,0,0)
@@ -674,15 +674,15 @@ class ViewPort:
         transitions=[]
         trancolor=(0,0,0)
         statecolor=(0,0,0)
-        if self.initial==None:
+        if self.initial==None:#iniciar path no estado inicial
             for x in self.av.getFigures():
-                if not hasattr(x,"label") and x.initial:
+                if not hasattr(x,"label") and x.initial:#descobrir estado inicial
                     self.initial=x
                     statecolor=x.strokeColor
                     x.strokeColor=self.color_to_rgb("blue")
                     self.pathstates.append(x)
                     break
-            for x in self.av.getFigures():
+            for x in self.av.getFigures(): #encontrar transicoes que saem do estado inicial e tem a label correta
                 if hasattr(x,"label") and x.arrowPoints[0].comp(self.initial.referencePoint) and  (x.label==char or x.label==""):
                     trancolor=x.strokeColor
                     x.strokeColor=self.color_to_rgb("blue")
@@ -690,24 +690,25 @@ class ViewPort:
                 else:
                     self.allstates.append(x)
         else:          
-            for x in self.av.getFigures():
+            for x in self.av.getFigures():#encontrar transicoes que saem dos estados da iteração passada e tem a label correta
                 for y in self.pathstates:
                     if hasattr(x,"label")and (x.label==char or x.label=="") and x.arrowPoints[0].comp(y.referencePoint):
                             trancolor=x.strokeColor
                             x.strokeColor=self.color_to_rgb("blue")
                             transitions.append(x) 
 
-        for y in self.pathstates:
+        for y in self.pathstates:#dar reset nos estados da iteração passada
             y.strokeColor=statecolor
         self.pathstates=[]
         for x in transitions:
-            for p in self.allstates:
+            for p in self.allstates:#adicionar estados de destino
                 if x.arrowPoints[-1].comp(p.referencePoint):
                     statecolor=p.strokeColor
                     p.strokeColor=self.color_to_rgb("blue")
                     self.pathstates.append(p)
         self.show()
-        for x in transitions:
+        
+        for x in transitions:#dar reset nas transicoes
             x.strokeColor=trancolor
         if len(transitions)==0:
             print("Palavra não pertence ao autómato")
