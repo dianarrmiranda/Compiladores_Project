@@ -24,6 +24,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    protected static final Type LIST_TYPE = new ListType();
    protected static final Type GRID_TYPE = new GridType();
 
+
    // ParseTreeProperty usada para passar os simbolos de alphabetElement para alphabetDef,
    // é capaz de ser boa ideia mudar isto, está ineficiente (mas funciona)
    private ParseTreeProperty<ArrayList<Character>> alphabetValues = new ParseTreeProperty<>();
@@ -36,7 +37,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    private int numAcceptingStates = 0;
    // type do automato a ser definido (preciso disto nas transições por causa das condições DFA/NFA,etc)
    private Type currAutomatonType;     
-   // TODO: verificar se os estados a ser usados são validos para o automato ATUAl ( ainda nao sei como )
    // para cada automato, ter a lista das transições
    private Map <String, Transitions> automatonsTransitions = new HashMap<>();
    // estados dos automatos
@@ -59,13 +59,17 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitProgram(advParser.ProgramContext ctx) {
       Boolean res = null;
-      return visitChildren(ctx);
+      visitChildren(ctx);
+      if (declared_not_initialized.size() > 0) {
+         String not_initialized = String.join(", ", declared_not_initialized);
+         ErrorHandling.printWarning(String.format("Variable(s) '%s' declared but weren't initialized and were never used.", not_initialized));
+      }
+      return res;
    }
 
    @Override public Boolean visitStat(advParser.StatContext ctx) {
-      Boolean res = true;
+      Boolean res = null;
       return visitChildren(ctx);
-      //return res;
    }
 
    @Override public Boolean visitImportstat(advParser.ImportstatContext ctx) {
@@ -264,7 +268,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       visit(ctx.expr());
       // Verificar se o expr devolve uma lista
       String typeExpr = valuesToString.get(ctx.expr());
-      if (!typeExpr.equals("list"))    // expressão inválida para o loop
+      if (typeExpr != null && !typeExpr.equals("list"))    // expressão inválida para o loop
       {
          ErrorHandling.printError(ctx, String.format("Invalid type of expression in AutomatonFor. Correct use -> for [id] in [list]"));
          
@@ -865,6 +869,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       String viewID = ctx.ID(1).getText();
       Symbol viewSymbol;
       AutomatonContainer currentStates;
+      String exprType1, exprType2;
       if (globalSymbolTable.containsSymbol(viewportID))
       {
          ErrorHandling.printError(ctx,String.format("Variable name taken on viewport definition - \"%s\"", viewportID));
@@ -880,7 +885,9 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
                currentViewString = viewID;
                visit(ctx.expr(0));
                visit(ctx.expr(1));
-               if (!valuesToString.get(ctx.expr(0)).equals("point") || !valuesToString.get(ctx.expr(1)).equals("point")) {
+               exprType1 = valuesToString.get(ctx.expr(0));
+               exprType2 = valuesToString.get(ctx.expr(1));
+               if (exprType1 == null || exprType2 == null || !exprType1.equals("point") || !exprType2.equals("point")) {
                   ErrorHandling.printError(ctx,String.format("Viewport definition must include 2 points."));
                   
                } else {
@@ -1004,6 +1011,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    @Override public Boolean visitViewportInstructionsShowElement(advParser.ViewportInstructionsShowElementContext ctx) {
       Boolean res = null;
       String id, propertyKey, transitionText;
+      Symbol id_Symbol;
       Transitions current_transitions;
       if (ctx.transition() != null) {
          transitionText = ctx.transition().getText();
@@ -1013,12 +1021,16 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
          }
       } else {       // ID propertyElement*
          id = ctx.ID().getText();
-         if (currentSymbolTable.findSymbol(id) == null)
+         id_Symbol = currentSymbolTable.findSymbol(id);
+         if (id_Symbol == null)
          {
             ErrorHandling.printError(ctx,String.format("State '%s' not found in the 'show' statement inside viewport.", id));
             
          } else {
-            for (int i = 0; i < ctx.propertyElement().size(); i++) {
+            if (id_Symbol.type() != STATE_TYPE) {
+               ErrorHandling.printError(ctx,String.format("Symbol in 'show' clause is of an invalid type. Must be a state.", id));
+            } else {
+               for (int i = 0; i < ctx.propertyElement().size(); i++) {
                visit(ctx.propertyElement(i));
                propertyKey = valuesToString.get(ctx.propertyElement(i));
                if (!propertyKey.equals("accepting") && !propertyKey.equals("highlighted")) {
@@ -1026,6 +1038,8 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
                   ErrorHandling.printError(ctx,String.format("Invalid property key for show statement. Must be either 'accepting' or 'highlighted'."));
                }
             }
+            }
+            
          }
       }
 
@@ -1143,6 +1157,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       Boolean expr1 = visit(ctx.expr(1));
       // devolve true se for uma expressão "OR" válida, com 2 expressões booleanas
       if (expr0 != null && expr1 != null && expr0 && expr1) res = true;
+      valuesToString.put(ctx, "boolean");
       
       return res;
    }
@@ -1217,7 +1232,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       Boolean expr1 = visit(ctx.expr(1));
       // devolve true se for uma expressão "OR" válida, com 2 expressões booleanas
       if (expr0 != null && expr1 != null && expr0 && expr1) res = true;
-      
+      valuesToString.put(ctx, "boolean");
       return res;
    }
 
@@ -1231,6 +1246,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       // e caso sejam, vejo se são do mesmo type, que é o que valuesToString tem
       // ou seja, apenas é valido fazer, por exemplo, POINT > POINT, ou NUMBER > NUMBER
       if (leftExpr != null && rightExpr != null && leftExpr.equals(rightExpr)) res = true;
+      valuesToString.put(ctx, "boolean");
       return res;
    }
 
@@ -1239,10 +1255,19 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       Boolean res = null;
       String stateID = ctx.ID().getText();
       Symbol state_symbol = currentSymbolTable.findSymbol(stateID);
-      if (state_symbol != null && state_symbol.type() == STATE_TYPE) {
+      /*if (state_symbol != null && state_symbol.type() == STATE_TYPE) {
          valuesToString.put(ctx, "point");
+      }*/
+      if (state_symbol != null) {
+         if (state_symbol.type() == STATE_TYPE) {
+            valuesToString.put(ctx, "point");
+         } else if (state_symbol.type() == BOOLEAN_TYPE) {
+            res = true;
+         } else {
+            valuesToString.put(ctx, state_symbol.type().name().toLowerCase());
+         }
       }
-      return visitChildren(ctx);
+      return res;
       //return res;
    }
 
@@ -1270,6 +1295,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       // e caso sejam, vejo se são do mesmo type, que é o que valuesToString tem
       // ou seja, apenas é valido fazer, por exemplo, POINT > POINT, ou NUMBER > NUMBER
       if (leftExpr != null && rightExpr != null && leftExpr.equals(rightExpr)) res = true;
+      valuesToString.put(ctx, "boolean");
       return res;
    }
 
@@ -1327,7 +1353,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
    @Override public Boolean visitAssign(advParser.AssignContext ctx) {
       Boolean res = true;
-      visit(ctx.expr());
+      Boolean exprReturnValue = visit(ctx.expr());
       String exprType, id_to_assign;
       id_to_assign = ctx.ID().getText();
       exprType = valuesToString.get(ctx.expr());
@@ -1365,16 +1391,23 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
                
             }
          } else if (id_symbol.type() == BOOLEAN_TYPE) {
-            // TODO: fazer isto
-            ;
+            if (exprReturnValue != null) {   // o returnValue só é true para boolean!! (ver visitCompareExpr, e por exempl visitNumberExpr)
+               if (exprReturnValue == true) {
+                  if (!exprType.equals("boolean")) {
+                     ErrorHandling.printError(ctx,String.format("Invalid boolean expression for variable \"%s\".", id_to_assign));
+                     res = false;
+                  }
+               }
+            } else {
+               ErrorHandling.printError(ctx,String.format("Invalid type '%s' for variable \"%s\". Expected \"%s\".", exprType, id_to_assign, id_symbol.type().name()));
+               res = false;
+            }
          } 
 
       }
-      // se o assign tiver sucesso, remover de declared_not_initialized
+      // depois do assign, mesmo que seja inválido, remover dos declared_not_initialized
       if (declared_not_initialized.contains(id_to_assign)) {
-         if (res) {
             declared_not_initialized.remove(id_to_assign);
-         }
       }
       return res;
    }

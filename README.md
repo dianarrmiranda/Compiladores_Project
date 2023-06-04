@@ -52,7 +52,7 @@ O nosso grupo conseguiu cumprir totalmente  os requisitos definidos no nível m�
   5. Instruções para executar uma animação de um autómato;
   6. Permitir alterar a alteração das propriedades dos elementos intrínsicos (estado, transição) de um autómato;
   7. Definição dos tipos de dados número, ponto e lista, assim como álgebras que permitam a sua manipulação;
-  8. Definições de instruções de iteração sobre os elementos de uma lista;
+  8. Definição de instruções de iteração sobre os elementos de uma lista;
  - Verificação semântica para os elementos referidos anteriormente;
 
 ### Nível Mínimo
@@ -66,7 +66,6 @@ Exemplo:
 alphabet { 'a', 'b', 'c' }
 ```
 - Para se definir um alfabeto em adv é necessário incluir a instrução referida acima, os elementos pertencentes a este iram pertencer a transições presentes num autómato. 
-- Para esta instrução é necessário verificar se o alfabeto é um conjunto não vazio, se os símbolos presentes são sempre representados por caracteres entre plicas, limitados a letras e a algarismos decimais e estes não podem ser repetidos.
 
 <br />
 
@@ -88,8 +87,6 @@ complete DFA a3 <<< >>>
   2. Indicação do ID deste;
   3. Dentro dos elementos "<<< >>>" irá se definir os estados e as transições que constituem o autómato.
 
-- Nesta instrução, relativamente à análise semântica, foi necessário se o tipo do autómato especificado era correto e se o id do autómato já foi definido anteriormente.
-
 <br />
 
 #### __Definição dos elementos intrínsicos de um autómato__
@@ -109,13 +106,6 @@ NFA a1 <<<
         A -> 'a','b','c' -> A;
 >>>
 ```
-- Para qualquer tipo de autómato definido na linguagem adv, pode-se definir os estados, qual é o inicial e qual é o de aceitação, bem como as suas transições.
-- Nesta instrução, para os dois tipos de autómatos possíveis, definimos como análise semântica os seguintes pontos:
-    - Verificar se a definição dos estados e das transições são corretas;
-    - Verificar se não existem estados e transições repetidas;
-    - Verificar nas transições se existem símbolos repetidos;
-    - Garantir que existe apenas 1 estado de iniciação;
-    - Garantir que existe pelo menos 1 estado de aceitação;
 
 <br />
 
@@ -125,8 +115,8 @@ Uma vista de um autómato é definida para se puder representar um autómato num
 A tabela seguinte indica as instruções possíveis para uma view bem como uma pequena descrição:
 | Instrução | Descrição|
 |:---:|:---:|
-| ```view v1 for a1 <<< >>>``` | Definição de uma view (v1) para o autómato a1. É necessário garantir que o autómato a1 existe e que a view v1 ainda não foi criada.|
-| ```place A at (2,1), B at (5,1);``` | Posicionar o estado A e B nos pontos respetivos apresentados. Neste caso, é necessário verificar se a definição do ponto está correta e se os estados escolhidos existem, se são do tipo estado e se pertencem ao autómato definido.|
+| ```view v1 for a1 <<< >>>``` | Definição de uma view (v1) para o autómato a1. |
+| ```place A at (2,1), B at (5,1);``` | Posicionar o estado A e B nos pontos respetivos apresentados. |
 | ```point p1 = (5,2);``` | Definição de uma variável do tipo point. 
 | ```p1 = (B);``` | Atribuir a uma variável do tipo ponto, definido anteriormente, um estado do autómato.
 | ``` point p2 = (A) + (-20:0.6); ``` | Operações algébricas com pontos . |
@@ -144,16 +134,138 @@ A tabela seguinte apresenta instruções que podem existir dentro de uma animaç
 | Instrução | Descrição |
 | :---: | :---: |
 | ``` viewport vp1 for v1 at (10,10) -- ++(500,500); ``` | Criar uma viewport para a view v1 no ponto (10,10), com um tamanho de 500x500 |
-| ``` on vp1 <<< >>> ``` | Para definir quais os elementos que vão ficar visíveis na viewport terá de se escrever esta instrução, tendo de sido feito na anaĺise semântica a verificação de se a viewport referida existe. 
+| ``` on vp1 <<< >>> ``` | Para definir quais os elementos que vão ficar visíveis na viewport terá de se escrever esta instrução.| 
 | ``` show B [accepting = true]; ``` | Esta instrução tem como objetivo indicar quais são os estados que vão ser representados na tela e definir o estado indicado como estado de aceitação. Para indicar qual o estado inicial seria [inital = true]. |
 | ``` pause; ``` | Esta instrução tem como funcionalidade parar a animação do autómato, esta só irá retornar quando o utilizador pressionar a tecla right arrow é que a animação irá avançar para o próximo passo. |
 
 <br />
 
 #### __Tipos de dados número, ponto e lista, assim como álgebras que permitam a sua manipulação__
----
+Para o desenvolvimento da linguagem adv, foi necessário criar um conjunto de tipos de dados, que são:
+- Número (number);
+- Ponto (point);
+- Lista (list);
+
+__Número (number):__ <br />
+Este tipo de dados representa um simples número inteiro ou número real e estes podem ser ou positivos ou negativos. Com este tipo de dados é possível fazer operações algébricas, como por exemplo:
+```
+number x1 = 1.4;
+number x2 = -2;
+number x3 = x1 + x2;
+```
+
+__Ponto (point):__ <br />
+O tipo de dados ponto representa, tal como o nome indica, a definição de um ponto num espaço bidimensional, ou seja, um ponto com coordenadas x e y, em que estas coordenadas são números. Em adv, também é possível definir uma variável do tipo point com coordenadas polares, ou seja em que o valor de x é o valor de um ângulo, formado entre o eixo de referência e uma linha traçada a partir do ponto de referência até ao ponto em questão, e o valor de y é o tamanho do raio entre o ponto de referência (polo) e o ponto em questão. Também é possível atribuir a uma variável deste tipo o ponto em que um determinado estado se encontra.  Com este tipo de dados também é possível efetuar operações algébricas, como por exemplo:
+```
+place A at (2,1);
+
+// Definição de pontos com coordenadas cartesianas
+point p1 = (5, 3);
+point p2 = (43,2);
+
+point p3 = p1 + p2;
+
+// Definição de um ponto com coordenadas polares
+point p4 = (200:0.5);
+
+point p5 = p3 + p4;
+
+// Definição de um ponto com as coordenadas da posição de um estado
+point p6 = (A);
+
+point pm = (p6+p5)/2 + (0,0.2);
+```
+
+__Lista (list):__ <br />
+Este tipo de dados representa uma lista que pode conter vários elementos de qualquer tipo de dados, como estados, números, pontos, autómatos, entre outros.
+Também é possível efetuar operações algébricas com listas, no entanto estas só podem envolver variáveis do tipo lista.
+Exemplo:
+```
+point a = (2,1);
+point b = (3,1);
+point c = (1,2);
+point d = (1,3);
+
+list l1 = {{a,b}};
+list l2 = {{c,d}};
+
+list l3 = l1 + l2;
+```
 
 <br />
+
+#### __Definição de instruções de iteração sobre os elementos de uma lista__
+---
+
+
+### __Análise Semântica - Informação__
+Nesta secção, há uma explicação sucinta dos erros semânticos que encontramos, incluíndo aqueles que foram resolvidos e aqueles que não conseguimos resolver.
+
+#### __Erros Semânticos resolvidos__
+---
+
+##### Erros específicos a certas operações
+
+- caratéres repetidos na definição de alfabeto (incluindo quando se usa um 'range' para definir um alfabeto, como [a-z]);
+- definir autómatos cujo conjunto de transições é inválido, dependendo do tipo de automato (NFA, DFA, complete DFA);
+- estados definidos num autómato usáveis em views que não são definidas para esse autómato (ex: há um automato a1 com estados J,K,L e um autómato a2 com estados A,B,C; uma view v1 of a2 não poderá usar os estados J,K,L, apenas pode definir os estados do autómato sobre o qual a view é definida);
+- autómato não tem pelo menos 1 estado de aceitação e 1 e só 1 estado inicial;
+- não definir estados com o mesmo nome dentro de um autómato
+- definir transições sobre carateres que não pertencem ao alfabeto definido no inicio. ___Observação___: também há análise semântica associada à transição vazia, representada por uma string vazia, incluindo o seu uso em autómatos DFA, NFA e complete DFA.
+
+
+
+- os 'argumentos' para definir transições são garantidamente dois estados, e não elementos de outro tipo;
+- definir transições duplicadas (A -> 'a', 'a', -> B, é inválido semanticamente);
+- definir uma view para um autómato que não existe, ou um elemento que não é um autómato;
+- na definição das setas das transições, não usar pontos (exemplo válido: ```<B,A> as p1 -- pm -- p2;``` em que p1, pm e p2 são pontos);
+- na definição das setas das transições, definir uma propriedade que não é slope (exemplo inválido: ```<B,A> as p1 [align=right] -- pm [accepting=true] -- p2 [initial=false];``` );
+- ao referir a uma label, usar uma propriedade que não é align (exemplo inválido: ```place <B,A>#label [slope = 10] at pa;``` );
+- ao referir a uma transição dentro de uma view, usar uma transição que não existe ou não existe para o autómato atual;
+- na construção "place ID at expr", expr não ser um ponto;
+- na definição de grid, a expressão dada para height e width não ser um ponto (ou uma variável que é um ponto);
+- definir propriedades da grid com elementos inválidos (por exemplo, não usar um número ao definir a propriedade "step");
+- ao definir um viewport, o símbolo dado não existe ou, se existir, não corresponde a uma view;
+- ao definir um viewport, as expressões especificadas não são do tipo ponto (exemplo inválido: ```viewport vp3 for v3 at 1 -- ++2;``` exemplo válido: ```viewport vp3 for v3 at (10,10) -- ++(500,300);``` );
+- na instrução show 'ID', usar uma variável que não está associada a um estado (exemplo inválido: ```number n = 1; show n;``` exemplo válido: ```state cs = A; show cs;```);
+- na instrução show 'transition', usar uma transição que não existe para o autómato da view cujo viewport foi definido
+- na instrução play 'id', usar uma variável que não está associada a uma animation
+
+
+
+---
+
+##### Erros globais a muitas operações
+- usar variáveis com o mesmo nome dentro do mesmo scope (não se pode por exemplo, criar dois pontos chamados p1 dentro de uma view, mas pode se criar dois pontos chamados p1 dentro de  views diferentes)
+- em ciclos for, não iterar por uma expressão iterável, que no caso deste trabalho são os types 'list' e 'string' (apenas se pode iterar por string num ciclo for dentro de um viewport)
+- criar listas com tipos incompatíveis, como por exemplo, uma lista com 2 elementos do tipo 'state' e 1 do tipo 'number' (é garantido que todos os elementos são do mesmo tipo, se não, produzirá um erro semântico)
+- expressões booleanas inválidas (como por exemplo: ```while (10 or (1 < 2))```)
+ ___Observação___:  Não consideramos um inteiro como expressão válida booleana na análise semântica, mas sim como apenas um número, pois a linguagem é type-safe.
+- uso de expressões não booleanas em ciclos 'while' e condições 'if' (```if 1 + 1``` não é permitido, por exemplo)
+- elementos de uso global/local (poder usar autómatos fora do scope de um autómato, mas não um ponto fora do scope de onde este foi definido)
+- na soma de dois elementos, usar elementos de tipos diferentes 
+___Observação___: assumimos que há não é possível somar ponto com número e vice-versa, apenas somas entre tipos iguais. (nota: não temos suporte a análise semântica de soma/concatenação de strings)
+- na multiplicação de duas expressões, não seguir umas das seguintes condições: ```(ponto) * (numero)```, ```(numero) * (numero)```, ```(numero) * (ponto)```
+- na divisão de duas expressões, não seguir umas das seguintes condições: ```(ponto) / (numero)```, ```(numero) / (numero)```
+- na declaração e assignment de variáveis, os tipos são incompatíveis (exemplo válido: ```point n1 = 1;``` isto causa um erro semântico, pois espera um ponto)
+- não haver warning de variáveis declaradas mas não assigned. (por exemplo, declarar ```point p1;``` e depois nunca dar um valor a p1, causa um warning)
+- usar valores inválidos para certas propriedades (por exemplo: fazer ```A [accepting = 100]``` produzirá um erro semântico pois espera ```true``` ou ```false```, o mesmo se aplica a todas as outras propriedades como por exemplo ```align```, que espera ```below```, ```below right```, etc..)
+
+
+---
+
+#### __Erros Semânticos não resolvidos__
+- variáveis declaradas mas não inicializadas podem ser usadas e não causam erro semântico (exemplo: ```number n1; number n2 = n1 + 2;```  não causa um erro, apesar do uso de n1 antes de assignment).
+
+Bug conhecido: 
+
+- o valor de b não é válido no que toca a expressões booleanas, porém, pode ser usado num if, e não causa erro semântico.
+```
+boolean b = 10; // valor inválido para boolean, mas declara e dá assign a uma variável como boolean
+
+if (b) do <<< // do something >>>		// isto não dá erro, apesar da variável 'b' estar associada a uma expressão booleana inválida
+```
+---
 
 ## Contribuições
 
