@@ -19,23 +19,8 @@ class xAdvVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by xAdvParser#importDef.
-    def visitImportDef(self, ctx:xAdvParser.ImportDefContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by xAdvParser#concreteDefinition.
-    def visitConcreteDefinition(self, ctx:xAdvParser.ConcreteDefinitionContext):
-        return self.visitChildren(ctx)
-
-
     # Visit a parse tree produced by xAdvParser#automatonStyle.
     def visitAutomatonStyle(self, ctx:xAdvParser.AutomatonStyleContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by xAdvParser#viewportStyle.
-    def visitViewportStyle(self, ctx:xAdvParser.ViewportStyleContext):
         return self.visitChildren(ctx)
 
 

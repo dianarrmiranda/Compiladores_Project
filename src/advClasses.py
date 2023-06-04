@@ -41,14 +41,14 @@ class Point:
 
 class Align(Enum):
     CENTERED = 0
-    LEFT = 1
-    RIGHT = 2
+    LEFT = 2
+    RIGHT = 1
     ABOVE = 3
     BELOW = 4
-    LEFT_ABOVE = 5
-    LEFT_BELOW = 6
-    RIGHT_ABOVE = 7
-    RIGHT_BELOW = 8
+    LEFT_ABOVE = 7
+    LEFT_BELOW = 8
+    RIGHT_ABOVE = 5
+    RIGHT_BELOW = 6
 
 #--------------------------------------------------------
 
@@ -72,6 +72,7 @@ class AdvStateFigure(AdvFigure):
         self.initial = False
         self.referencePoint = origin
         self.radius = 0.5
+        self.strokeColor=color
 
     def draw(self, mat, scaleFrom, scaleTo):
         # if not visible do nothing
@@ -104,9 +105,10 @@ class AdvStateFigure(AdvFigure):
 #--------------------------------------------------------
 
 class AdvTransitionFigure(AdvFigure):
-    def __init__(self, key, label):
+    def __init__(self, key, label,linecolor=(0,0,0)):
         super().__init__(key)
         self.label = label
+        self.strokeColor=linecolor
         self.labelReferencePoint = Point(0,0)
         self.labelAlignment = Align.CENTERED
         self.arrowPoints = []
@@ -156,8 +158,8 @@ class AdvTransitionFigure(AdvFigure):
 #--------------------------------------------------------
 
 class AdvLoopTransitionFigure(AdvTransitionFigure):
-    def __init__(self, key, label, p, align):
-        super().__init__(key, label)
+    def __init__(self, key, label, p, align,linecolor=(0,0,0)):
+        super().__init__(key, label,linecolor)
 
         # set arrow points
         p1 = p + Point(-0.2, -0.6)
@@ -196,8 +198,8 @@ class AdvLoopTransitionFigure(AdvTransitionFigure):
 #--------------------------------------------------------
 
 class AdvLineTransitionFigure(AdvTransitionFigure):
-    def __init__(self, key, label, p1, p2, align):
-        super().__init__(key, label)
+    def __init__(self, key, label, p1, p2, align,linecolor=(0,0,0)):
+        super().__init__(key, label,linecolor)
 
         # set arrow points
         p21 = p2 - p1
@@ -234,8 +236,8 @@ class AdvLineTransitionFigure(AdvTransitionFigure):
 
 #--------------------------------------------------------
 class AdvCurveTransitionFigure(AdvTransitionFigure):
-    def __init__(self, key, label, p1, p2, p3, align):
-        super().__init__(key, label)
+    def __init__(self, key, label, p1, p2, p3, align,linecolor=(0,0,0)):
+        super().__init__(key, label,linecolor)
 
         p3 = p3 + Point(0, 0.4)
         p1 = p1 + Point(-0.0, 0.5)
@@ -273,8 +275,8 @@ class AdvCurveTransitionFigure(AdvTransitionFigure):
 #--------------------------------------------------------
 
 class AdvSlopeTransitionFigure(AdvTransitionFigure):
-     def __init__(self, key, label, points,slopes , labelpos ,align):
-        super().__init__(key, label)
+     def __init__(self, key, label, points,slopes , labelpos ,align,linecolor=(0,0,0)):
+        super().__init__(key, label,linecolor)
 
         self.strokeColor = (255,0,0)
 
@@ -558,7 +560,7 @@ class ViewPort:
         if styles:
             self.applyStyles(string);
     
-    def refactorTransitions(self,label):
+    def refactorTransitions(self,label,line):
         for transition in self.view.automaton.transitions:
             stateStart = transition.stateStart.label
             stateEnd = transition.stateEnd.label
@@ -569,16 +571,16 @@ class ViewPort:
             labelAlign = label
             labelPos = transition.lablepos
             if len(transition.slope)>0:
-                self.f = AdvSlopeTransitionFigure(trans, transition.label, point3,transition.slope,labelPos,labelAlign)
+                self.f = AdvSlopeTransitionFigure(trans, transition.label, point3,transition.slope,labelPos,labelAlign,line)
                 self.av.addFigure(trans, self.f)
             elif stateStart == stateEnd:
-                self.f = AdvLoopTransitionFigure(trans, transition.label, Point(point1[0], point2[1]),labelAlign)
+                self.f = AdvLoopTransitionFigure(trans, transition.label, Point(point1[0], point2[1]),labelAlign,line)
                 self.av.addFigure(trans, self.f)
             elif (stateStart > stateEnd):
-                self.f = AdvCurveTransitionFigure(trans, transition.label, Point(point3[0][0], point3[0][1]), Point(point3[1][0], point3[1][1]), Point(point3[2][0], point3[2][1]),labelAlign)
+                self.f = AdvCurveTransitionFigure(trans, transition.label, Point(point3[0][0], point3[0][1]), Point(point3[1][0], point3[1][1]), Point(point3[2][0], point3[2][1]),labelAlign,line)
                 self.av.addFigure(trans, self.f)
             elif (stateStart < stateEnd):
-                self.f = AdvLineTransitionFigure(trans, transition.label, Point(point1[0], point1[1]), Point(point2[0], point2[1]), labelAlign)
+                self.f = AdvLineTransitionFigure(trans, transition.label, Point(point1[0], point1[1]), Point(point2[0], point2[1]), labelAlign,line)
                 self.av.addFigure(trans, self.f)
     
     def color_to_rgb(self,color:str):
@@ -586,35 +588,68 @@ class ViewPort:
 
         # Dictionary mapping color names to RGB values
         colors = {
-            'red': (255, 0, 0),
-            'green': (0, 255, 0),
-            'blue': (0, 0, 255),
-            'yellow': (255, 255, 0),
-            'cyan': (0, 255, 255),
-            'magenta': (255, 0, 255),
+            'black': (0, 0, 0),
             'white': (255, 255, 255),
-            'black': (0, 0, 0)
+            'red': (0, 0, 255),
+            'green': (0, 255, 0),
+            'blue': (255, 0, 0),
+            'cyan': (255, 255, 0),
+            'magenta': (255, 0, 255),
+            'yellow': (0, 255, 255),
+            'gray': (128, 128, 128),
+            'light gray': (192, 192, 192),
+            'dark gray': (64, 64, 64),
+            'maroon': (0, 0, 128),
+            'olive': (0, 128, 128),
+            'navy': (128, 0, 0),
+            'purple': (128, 0, 128),
+            'teal': (128, 128, 0),
+            'aqua': (255, 255, 0),
+            'lime': (0, 255, 0),
+            'fuchsia': (255, 0, 255),
+            'silver': (192, 192, 192),
+            'olive drab': (35, 142, 107),
+            'sky blue': (235, 206, 135),
+            'salmon': (128, 148, 114),
+            'indigo': (130, 0, 75),
+            'coral': (80, 127, 255),
+            'lavender': (250, 230, 230),
+            'goldenrod': (32, 165, 218),
+            'turquoise': (208, 224, 64),
+            'tomato': (71, 99, 255),
+            'orchid': (214, 112, 218),
+            'slate blue': (205, 90, 106),
+            'chocolate': (30, 105, 210),
+            'dark olive green': (47, 107, 85),
+            'medium purple': (219, 112, 147),
+            'light coral': (128, 128, 240),
+            'dark slate gray': (79, 128, 128)
         }
+
         return colors.get(color, (0,0,0))  # Return RGB tuple if color found, default color otherwise
     
     def applyStyles(self,styles:str):
+        print("Applying styles")
         color=(0,0,0)
+        line=(0,0,0)
         for c in range (styles["num"]):
             estilo=styles[c]
             label="default"
             tipo=estilo.pop("type")
-
-            if tipo=="automaton":    
+            id=estilo.pop("ID",None)
+            if tipo=="automaton" and (id==None or self.view.automaton.name==id):    
                 if("color" in estilo):
                     color=self.color_to_rgb(estilo["color"])
                 if("label" in estilo):
                     label=estilo["label"]
+                if("linecolor" in estilo):
+                    line=self.color_to_rgb(estilo["linecolor"])
                 self.av = AdvAutomatonView()
                 for state in self.view.automaton.states:
                     self.f = AdvStateFigure(state.label, Point(state.pos[0], state.pos[1]),color)
                     self.av.addFigure(state.label, self.f)
                 if label!="default":
-                    self.refactorTransitions(label)
+                    self.refactorTransitions(label,line)
 
     def get(self,t) :
         if t.__class__ == State:
@@ -822,21 +857,3 @@ def HermiteSpline(points: list,tangents: list,scales:list=[],res=25) -> list:
 
     return output
 
-def hermitetest():
-    img = np.zeros((500, 500, 3), dtype=np.uint8)
-
-    points = [ array([50,50]) , array([250,150]) , array([400,50]) ,array([400,400])  ]
-    tangents = [ -45,90,0,-120 ]
-
-    spline = HermiteSpline(points,tangents)
-    for i in range(1,len(spline)):
-        cv.line(img,spline[i-1],spline[i],(255,255,255),2)
-
-    for i in points:
-        cv.circle(img,i,5,(255,0,0),5)
-
-    cv.imshow("test",img)
-    cv.waitKey(0)
-
-if __name__ == "__main__":
-    hermitetest()

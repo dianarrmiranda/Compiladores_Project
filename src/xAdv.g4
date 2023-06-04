@@ -2,21 +2,13 @@ grammar xAdv;
 
 program: definitions+ EOF;
 
-definitions:(importDef | concreteDefinition);
-
-importDef: 'import' Value;
- 
-concreteDefinition: 'define' (automatonStyle |viewportStyle); //AnimationStyle?(ex. speed of transitions)
+definitions:'define' (automatonStyle);
 
 automatonStyle: 'automaton''{'(AutomatonProperty ':' Value)+ '}'//todos os autómatos
 |Value '{'(AutomatonProperty ':' Value)+ '}'; //um autómato em especifico
 
-viewportStyle: 'viewport''{'(ViewportProperty ':' Value)+ '}'
-|Value '{'(ViewportProperty ':' Value)+ '}';
 
-AutomatonProperty:'color'| 'size' | 'font-size' | 'linecolor' | 'label'; //align labels in automaton, 
-ViewportProperty:'background'| 'height' | 'width' | 'title';
-
+AutomatonProperty:'linecolor'|'color' | 'label';
 
 
 WS: [ \t]+ ->skip;
@@ -27,3 +19,5 @@ ID: [a-zA-Z][a-zA-Z0-9]*;
 NEWLINE:'\r'? '\n' -> skip;
 SingleLineComment: [/][/].*?NEWLINE -> skip;
 BlockComment :'/*' .*? '*/' -> skip;
+
+ERROR: . ;

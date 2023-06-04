@@ -26,39 +26,12 @@ class xAdvListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by xAdvParser#importDef.
-    def enterImportDef(self, ctx:xAdvParser.ImportDefContext):
-        pass
-
-    # Exit a parse tree produced by xAdvParser#importDef.
-    def exitImportDef(self, ctx:xAdvParser.ImportDefContext):
-        pass
-
-
-    # Enter a parse tree produced by xAdvParser#concreteDefinition.
-    def enterConcreteDefinition(self, ctx:xAdvParser.ConcreteDefinitionContext):
-        pass
-
-    # Exit a parse tree produced by xAdvParser#concreteDefinition.
-    def exitConcreteDefinition(self, ctx:xAdvParser.ConcreteDefinitionContext):
-        pass
-
-
     # Enter a parse tree produced by xAdvParser#automatonStyle.
     def enterAutomatonStyle(self, ctx:xAdvParser.AutomatonStyleContext):
         pass
 
     # Exit a parse tree produced by xAdvParser#automatonStyle.
     def exitAutomatonStyle(self, ctx:xAdvParser.AutomatonStyleContext):
-        pass
-
-
-    # Enter a parse tree produced by xAdvParser#viewportStyle.
-    def enterViewportStyle(self, ctx:xAdvParser.ViewportStyleContext):
-        pass
-
-    # Exit a parse tree produced by xAdvParser#viewportStyle.
-    def exitViewportStyle(self, ctx:xAdvParser.ViewportStyleContext):
         pass
 
 
