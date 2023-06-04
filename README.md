@@ -274,6 +274,69 @@ if (b) do <<< // do something >>>		// isto não dá erro, apesar da variável 'b
 ```
 ---
 
+<br />
+
+### Nível Desejado
+Para este nível, o nosso grupo conseguiu implementar todos os tópicos que foram definidos para este nível que foram os seguintes:
+- Adicionar a possibilidade de definir como legenda de uma transição a palavra vazia, para os autómatos finitos não deterministas;
+- Ler texto introduzido no terminal;
+- Incluir instruções condicionais, operando sobre  expressões booleanas;
+- Adicionar instruções repetitivas, controladas por uma expressão booleana;
+- Incluir nas expressões booleanas pelo menos as operações de conjunção, disjunção e negação, com precedências;
+- Na definição do alfabeto, possibilidade de se usar uma construção gramatical que represente uma sequência de símbolos.
+
+<br />
+
+### Nível Adicional
+Para este nível, o nosso grupo conseguiu implementar alguns tópicos do nível adicional que são os seguintes:
+- Definição de uma linguagem secundária auxiliar, interpretada em tempo de execução;
+- Representação das setas das transições por linhas curvas, tendo em consideração a propriedade *slope*;
+- Interpretação e visualização automática da evolução de um autómato ou máquina.
+
+<br />
+
+#### __Definição de uma linguagem secundária auxiliar, interpretada em tempo de execução__
+---
+A linguagem secundária para este projeto que foi desenvolvida pelo nosso grupo designa-se por xadv, e tem como objetivo auxiliar a linguagem adv em que se pode definir propriedades sobre o autómato, como a cor das legendas de uma transição e de um estado, a cor das formas de um estado e de uma transição e a posição de uma legenda de uma transição.<br />
+Exemplo:
+```
+define automaton { 
+    linecolor:red
+    color:green;
+    label: ABOVE   
+}
+```
+
+<br />
+
+#### __Representação das setas das transições por linhas curvas, tendo em consideração a propriedade *slope*__
+---
+Esta funcionalidade permite que a forma de uma transição fique com setas curvas. Para isto acontecer é necessário definir qual o valor do slope tomado num ponto.<br />
+Exemplo:
+```
+<B,A> as p1 [slope=235] -- pm [slope=0] -- p2 [slope=45];
+```
+
+<br />
+
+#### __Interpretação e visualização automática da evolução de um autómato ou máquina__
+---
+Esta funcionalidade permite que um utilizador insira uma palavra no terminal e observe a evolução do autómato face a essa mesma palavra<br />
+Exemplo:
+```
+// Pedir ao utilizador que introduza uma palavra
+string word = read [prompt="Insira uma palavra: "];
+
+state cs = A;
+show cs [ highlighted = true ];
+pause;
+for l in word <<<
+    update;
+    pause;
+>>>
+```
+
+
 ## Contribuições
 
 Para este trabalho, o nosso grupo dividiu-o nos seguintes tópicos e distribui os mesmos pelos elementos do grupo da seguinte forma:
@@ -288,10 +351,12 @@ Para este trabalho, o nosso grupo dividiu-o nos seguintes tópicos e distribui o
   - Diogo Marto;
   - Tiago Pereira;
   - Diana Miranda;
+  - José Gameiro;
 - __Geração de Código__;
   - Diogo Marto;
   - Tiago Pereira;
   - Diana Miranda;
+  - José Gameiro;
 - __Interpretador para a Gramática Secundária__;
   - Tiago Pereira;
 
