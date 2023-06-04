@@ -9,7 +9,6 @@ class xAdvInterpreter(xAdvVisitor):
             'white': (255, 255, 255),
             'red': (0, 0, 255),
             'green': (0, 255, 0),
-            'blue': (255, 0, 0),
             'cyan': (255, 255, 0),
             'magenta': (255, 0, 255),
             'yellow': (0, 255, 255),

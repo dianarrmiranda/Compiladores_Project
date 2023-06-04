@@ -348,6 +348,14 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   @Override
+   public ST visitPath(advParser.PathContext ctx) {
+      ST res = templates.getInstanceOf("stats");
+      res.add("stat","Update");
+      
+      return res;
+   }
+
    private HashSet<String> newVarViewport = new HashSet<>();
    @Override
    public ST visitViewportFor(advParser.ViewportForContext ctx) {
@@ -362,9 +370,16 @@ public class advCodeGen extends advBaseVisitor<ST> {
       forV.add("var", loopVar);
       forV.add("list", decl.get(ctx.expr()).get(0));
 
-      for (advParser.ViewportStatContext c : ctx.viewportStat())
-         forV.add("stat", visit(c).render());
-
+      for (advParser.ViewportStatContext c : ctx.viewportStat()){ 
+         String ret= visit(c).render();
+         if (ret.equals("Update")){
+            ST path=templates.getInstanceOf("path");
+            path.add("loopVar",loopVar);
+            forV.add("stat",path.render());
+         }
+         else
+            forV.add("stat",ret);
+      }
       res.add("stat", forV.render());
       return res;
    }

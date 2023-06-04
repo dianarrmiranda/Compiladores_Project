@@ -36,7 +36,10 @@ class Point:
 
     def norm(self):
         return math.sqrt(self.x**2 + self.y**2)
-
+    
+    def comp(self,point):
+        return point.x-0.8<=self.x<=point.x+0.8 and point.y-0.8<=self.y<=point.y+0.8
+        
 #--------------------------------------------------------
 
 class Align(Enum):
@@ -313,7 +316,10 @@ class AdvAutomatonView:
 
     def addFigure(self, key, figure):
         self.figures[key] = figure
-
+    
+    def getFigures(self):
+        return list(self.figures.values())
+     
     def draw(self, mat, scaleFrom, scaleTo):
         for f in self.figures.values():
             f.draw(mat, scaleFrom, scaleTo)
@@ -512,7 +518,9 @@ class Grid:
 class ViewPort:
 
     def __init__(self,view,cornerBottom,cornerTop,styles=False,string=""):
-        
+        self.allstates=[]
+        self.pathstates=[]
+        self.initial=None
         self.view = deepcopy(view)
         self.cornerBottom = cornerBottom
 
@@ -662,6 +670,50 @@ class ViewPort:
     def gettransition(self,str1: str,str2: str) -> Transition:
         return self.view.gettransition(str1,str2)
 
+    def update(self, char):
+        transitions=[]
+        trancolor=(0,0,0)
+        statecolor=(0,0,0)
+        if self.initial==None:
+            for x in self.av.getFigures():
+                if not hasattr(x,"label") and x.initial:
+                    self.initial=x
+                    statecolor=x.strokeColor
+                    x.strokeColor=self.color_to_rgb("blue")
+                    self.pathstates.append(x)
+                    break
+            for x in self.av.getFigures():
+                if hasattr(x,"label") and x.arrowPoints[0].comp(self.initial.referencePoint) and  (x.label==char or x.label==""):
+                    trancolor=x.strokeColor
+                    x.strokeColor=self.color_to_rgb("blue")
+                    transitions.append(x)
+                else:
+                    self.allstates.append(x)
+        else:          
+            for x in self.av.getFigures():
+                for y in self.pathstates:
+                    if hasattr(x,"label")and (x.label==char or x.label=="") and x.arrowPoints[0].comp(y.referencePoint):
+                            trancolor=x.strokeColor
+                            x.strokeColor=self.color_to_rgb("blue")
+                            transitions.append(x) 
+
+        for y in self.pathstates:
+            y.strokeColor=statecolor
+        self.pathstates=[]
+        for x in transitions:
+            for p in self.allstates:
+                if x.arrowPoints[-1].comp(p.referencePoint):
+                    statecolor=p.strokeColor
+                    p.strokeColor=self.color_to_rgb("blue")
+                    self.pathstates.append(p)
+        self.show()
+        for x in transitions:
+            x.strokeColor=trancolor
+        if len(transitions)==0:
+            print("Palavra não pertence ao autómato")
+            return False
+        return True
+
     def show(self, *args):
         
         for arg in args:
@@ -689,7 +741,9 @@ class ViewPort:
 
         for state in self.states:
             if state.accepting.strip() == 'true':
-                self.av.figures[state.label].accepting = True;
+                self.av.figures[state.label].accepting = True
+            if state.initial.strip() == 'true':
+                self.av.figures[state.label].initial = True
         
         self.av.draw(self.vp, 1.0, 50)
         np.copyto(self.window[self.cornerBottom[0]:,self.cornerBottom[1]:,:], self.vp)

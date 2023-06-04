@@ -120,6 +120,7 @@ animation m4 <<<
         pause;
         for l in word <<<
             /* depending on the value of l, highlight the appropriate states */
+            update;
             pause;
         >>>
     >>>

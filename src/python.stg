@@ -94,3 +94,7 @@ else:
     styles=False
 >>
 
+path(loopVar)::=<<
+if not view.update(<loopVar>):
+    break
+>>
