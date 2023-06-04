@@ -53,8 +53,8 @@ pathToDest=$(echo "$pathToDest".py)
 
 curDir=$(pwd)
 curDir=$(echo "$curDir"/ )
-pathToDest=$(echo "$curDir""$pathToDest")
-pathToSource=$(echo "$curDir""$pathToSource")
+pathToDest=$(echo $curDir$pathToDest)
+pathToSource=$(echo $curDir$pathToSource)
 
 cd $pathToCompiler
 cat $pathToSource | java advMain $pathToDest

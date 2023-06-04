@@ -8,7 +8,7 @@ from io import StringIO
 
 def Interpreter(path):
    style=""
-   with open("./src/"+path,"r")as file:
+   with open(path+".xadv","r")as file:
       style=file.read();
    print(style)
    visitor0 = xAdvInterpreter()
