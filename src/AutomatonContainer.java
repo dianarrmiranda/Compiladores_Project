@@ -28,7 +28,8 @@ public class AutomatonContainer {
 
     // para quando se faz por exemplo A [initial = true]
     public void addProperty(String state, String property) {
-        statesProperties.get(state).add(property);
+        if (statesProperties.containsKey(state))
+            statesProperties.get(state).add(property);
     }
 
     // para quando se faz por exemplo A [initial = false]
