@@ -14,6 +14,8 @@
  */
 alphabet { 'a', 'b', 'c' }
 
+import styles
+
 /*
  * Keywords 'complete' 'DFA' defines a determinist finite automaton,
  * in which all states and transitions are explicitly represented
@@ -90,13 +92,6 @@ view v4 of a4 <<<
     <D,E>#label [align=below right];
     <C,E>#label [align=right];
     <E,E>#label [align=left];
-    number a=5;
-    number b=0;
-    number c=1;
-    while (a != b) do <<< 
-    c= c + 1;
-    a= a - 1;
-    >>>
 >>>
 
 /*
@@ -106,7 +101,7 @@ animation m4 <<<
     /*
      * create a viewport to show view v4 of automaton a4,
      */
-    viewport vp4 for v4 at (10,10) -- ++(1000,600);
+    viewport vp4 for v4 at (10,10) -- ++(500,300);
 
     on vp4 <<<
         /*
@@ -127,11 +122,11 @@ animation m4 <<<
         pause;
         for l in word <<<
             /* depending on the value of l, highlight the appropriate states */
+            update;
             pause;
         >>>
     >>>
 >>>
 
 play m4;
-
 

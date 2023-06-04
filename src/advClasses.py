@@ -74,7 +74,6 @@ class AdvStateFigure(AdvFigure):
         self.initial = False
         self.referencePoint = origin
         self.radius = 0.5
-        self.strokeColor=color
 
     def draw(self, mat, scaleFrom, scaleTo):
         # if not visible do nothing
@@ -516,6 +515,9 @@ class ViewPort:
         self.view = deepcopy(view)
         self.cornerBottom = cornerBottom
 
+        self.trancolor=(0,0,0)
+        self.statecolor=(0,0,0)
+
         self.cornerTop = cornerTop
 
         self.states : State = []
@@ -665,19 +667,17 @@ class ViewPort:
 
     def update(self, char):
         transitions=[]
-        trancolor=(0,0,0)
-        statecolor=(0,0,0)
         if self.initial==None:#iniciar path no estado inicial
             for x in self.av.getFigures():
                 if not hasattr(x,"label") and x.initial:#descobrir estado inicial
                     self.initial=x
-                    statecolor=x.strokeColor
+                    self.statecolor=x.strokeColor
                     x.strokeColor=self.color_to_rgb("blue")
                     self.pathstates.append(x)
                     break
             for x in self.av.getFigures(): #encontrar transicoes que saem do estado inicial e tem a label correta
                 if hasattr(x,"label") and x.arrowPoints[0].comp(self.initial.referencePoint) and  (x.label==char or x.label==""):
-                    trancolor=x.strokeColor
+                    self.trancolor=x.strokeColor
                     x.strokeColor=self.color_to_rgb("blue")
                     transitions.append(x)
                 else:
@@ -686,12 +686,12 @@ class ViewPort:
             for x in self.av.getFigures():#encontrar transicoes que saem dos estados da iteração passada e tem a label correta
                 for y in self.pathstates:
                     if hasattr(x,"label")and (x.label==char or x.label=="") and x.arrowPoints[0].comp(y.referencePoint):
-                            trancolor=x.strokeColor
+                            self.trancolor=x.strokeColor
                             x.strokeColor=self.color_to_rgb("blue")
                             transitions.append(x) 
 
         for y in self.pathstates:#dar reset nos estados da iteração passada
-            y.strokeColor=statecolor
+            y.strokeColor=self.statecolor
         self.pathstates=[]
         for x in transitions:
             for p in self.allstates:#adicionar estados de destino
@@ -702,7 +702,7 @@ class ViewPort:
         self.show()
         
         for x in transitions:#dar reset nas transicoes
-            x.strokeColor=trancolor
+            x.strokeColor=self.trancolor
         if len(transitions)==0:
             print("Palavra não pertence ao autómato")
             return False

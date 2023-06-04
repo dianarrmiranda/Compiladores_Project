@@ -112,7 +112,7 @@ animation m3 <<<
     /*
      * create a viewport to show view v3 of automaton a3, 
      */
-    viewport vp3 for v3 at (10,10) -- ++(600,300);
+    viewport vp3 for v3 at (10,10) -- ++(1000,600);
 
     /* 
      * Inside a canvas, the items of the associated view/automaton are accessible
