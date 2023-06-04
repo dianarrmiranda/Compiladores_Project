@@ -197,7 +197,7 @@ list l3 = l1 + l2;
 #### __Definição de instruções de iteração sobre os elementos de uma lista__
 ---
 
-
+ 
 ### __Análise Semântica - Informação__
 Nesta secção, há uma explicação sucinta dos erros semânticos que encontramos, incluíndo aqueles que foram resolvidos e aqueles que não conseguimos resolver.
 

@@ -5,6 +5,11 @@ from math import *
 styles=False
 string=""
 def main():
+    string=Interpreter.Interpreter("styles.txt")
+    if string !="error":
+        styles=True
+    else:
+        styles=False
     v1 = State('A')
     v2 = State('B')
     v3 = State('C')

@@ -10,7 +10,7 @@ else:
 
 def serializedATN():
     return [
-        4,1,14,39,2,0,7,0,2,1,7,1,2,2,7,2,1,0,4,0,8,8,0,11,0,12,0,9,1,0,
+        4,1,15,39,2,0,7,0,2,1,7,1,2,2,7,2,1,0,4,0,8,8,0,11,0,12,0,9,1,0,
         1,0,1,1,1,1,1,1,1,2,1,2,1,2,1,2,1,2,4,2,22,8,2,11,2,12,2,23,1,2,
         1,2,1,2,1,2,1,2,1,2,4,2,32,8,2,11,2,12,2,33,1,2,3,2,37,8,2,1,2,0,
         0,3,0,2,4,0,0,39,0,7,1,0,0,0,2,13,1,0,0,0,4,36,1,0,0,0,6,8,3,2,1,
@@ -40,7 +40,7 @@ class xAdvParser ( Parser ):
     symbolicNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "AutomatonProperty", "WS", 
                       "Ignore", "Value", "INT", "ID", "NEWLINE", "SingleLineComment", 
-                      "BlockComment" ]
+                      "BlockComment", "ERROR" ]
 
     RULE_program = 0
     RULE_definitions = 1
@@ -63,6 +63,7 @@ class xAdvParser ( Parser ):
     NEWLINE=12
     SingleLineComment=13
     BlockComment=14
+    ERROR=15
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
