@@ -633,22 +633,22 @@ class ViewPort:
         line=(0,0,0)
         for c in range (styles["num"]):
             estilo=styles[c]
-            label="default"
+            labelPos="default"
             tipo=estilo.pop("type")
             id=estilo.pop("ID",None)
             if tipo=="automaton" and (id==None or self.view.automaton.name==id):    
                 if("color" in estilo):
                     color=self.color_to_rgb(estilo["color"])
                 if("label" in estilo):
-                    label=estilo["label"]
+                    labelPos=estilo["label"]
                 if("linecolor" in estilo):
                     line=self.color_to_rgb(estilo["linecolor"])
                 self.av.figures = { i[0]:i[1 ] for i in self.av.figures.items() if i[1].__class__ != AdvStateFigure }
                 for state in self.view.automaton.states:
                     self.f = AdvStateFigure(state.label, Point(state.pos[0], state.pos[1]),color)
                     self.av.addFigure(state.label, self.f)
-                if label!="default":
-                    self.refactorTransitions(label,line)
+                if labelPos!="default":
+                    self.refactorTransitions(labelPos,line)
 
     def get(self,t) :
         if t.__class__ == State:

@@ -197,7 +197,7 @@ list l3 = l1 + l2;
 #### __Definição de instruções de iteração sobre os elementos de uma lista__
 ---
 
-
+ 
 ### __Análise Semântica - Informação__
 Nesta secção, há uma explicação sucinta dos erros semânticos que encontramos, incluíndo aqueles que foram resolvidos e aqueles que não conseguimos resolver.
 
@@ -271,16 +271,20 @@ if (b) do <<< // do something >>>		// isto não dá erro, apesar da variável 'b
 
 Para este trabalho, o nosso grupo dividiu-o nos seguintes tópicos e distribui os mesmos pelos elementos do grupo da seguinte forma:
 - __Construção Gramatical__;
-  - Inserir aqui;
+  - Diogo Marto;
+  - Tiago Pereira;
+  
 - __Análise Semântica__;
   - João Dourado
   - Miguel Figueiredo
 - __Interface Gráfica__;
-  - Inserir aqui;
+  - Diogo Marto;
+  - Tiago Pereira;
 - __Geração de Código__;
-  - Inserir aqui;
+  - Diogo Marto;
+  - Tiago Pereira;
 - __Interpretador para a Gramática Secundária__;
-  - Inserir aqui;
+  - Tiago Pereira;
 
 
 
