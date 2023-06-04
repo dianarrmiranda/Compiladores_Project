@@ -1255,10 +1255,19 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       Boolean res = null;
       String stateID = ctx.ID().getText();
       Symbol state_symbol = currentSymbolTable.findSymbol(stateID);
-      if (state_symbol != null && state_symbol.type() == STATE_TYPE) {
+      /*if (state_symbol != null && state_symbol.type() == STATE_TYPE) {
          valuesToString.put(ctx, "point");
+      }*/
+      if (state_symbol != null) {
+         if (state_symbol.type() == STATE_TYPE) {
+            valuesToString.put(ctx, "point");
+         } else if (state_symbol.type() == BOOLEAN_TYPE) {
+            res = true;
+         } else {
+            valuesToString.put(ctx, state_symbol.type().name().toLowerCase());
+         }
       }
-      return visitChildren(ctx);
+      return res;
       //return res;
    }
 
