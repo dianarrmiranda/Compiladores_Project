@@ -10,4 +10,7 @@ pip install numpy
 echo "Installing opencv."
 pip install opencv-python
 
+echo "Installing antlr4-runtime"
+pip install antlr4-python3-runtime
+
 echo "Installation finished, restart terminal might be required."

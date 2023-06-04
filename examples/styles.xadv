@@ -1,6 +1,5 @@
 define automaton { 
     linecolor:red
-    color:blue;
-    label: ABOVE
-    
+    color:green;
+    label: ABOVE   
 }

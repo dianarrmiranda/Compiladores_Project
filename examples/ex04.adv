@@ -13,7 +13,9 @@
  * The alphabet 
  */
 alphabet { 'a', 'b', 'c' }
-import styles.txt
+
+import styles
+
 /*
  * Keywords 'complete' 'DFA' defines a determinist finite automaton,
  * in which all states and transitions are explicitly represented

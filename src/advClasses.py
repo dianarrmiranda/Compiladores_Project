@@ -4,7 +4,6 @@ import numpy as np
 import cv2 as cv
 import math
 from enum import Enum
-from threading import Thread
 
 #--------------------------------------------------------
 
@@ -336,17 +335,10 @@ class Animation:
 
         self.animfunc = []
 
-        self.threads = []
-
     def play(self):
         for i in range(len(self.animfunc)):
-            t = Thread( target=self.animfunc[i] , args=(self.viewPorts[i],) )
-            self.threads.append(t)
-            t.start()
-
-        # for i in self.threads:
-        #     i.join()
-
+            t = self.animfunc[i](self.viewPorts[i])
+           
     def add(self,func):
         self.animfunc.append(func)
         
@@ -564,9 +556,10 @@ class ViewPort:
         self.show_grid = False 
         
         if styles:
-            self.applyStyles(string);
+            self.applyStyles(string)
     
     def refactorTransitions(self,label,line): #alterar transições associadas à viewport
+        self.av.figures = { i[0]:i[1 ] for i in self.av.figures.items() if not isinstance(i[1],AdvTransitionFigure) }
         for transition in self.view.automaton.transitions:
             stateStart = transition.stateStart.label
             stateEnd = transition.stateEnd.label
@@ -650,7 +643,7 @@ class ViewPort:
                     labelPos=estilo["label"]
                 if("linecolor" in estilo):
                     line=self.color_to_rgb(estilo["linecolor"])
-                self.av = AdvAutomatonView()
+                self.av.figures = { i[0]:i[1 ] for i in self.av.figures.items() if i[1].__class__ != AdvStateFigure }
                 for state in self.view.automaton.states:
                     self.f = AdvStateFigure(state.label, Point(state.pos[0], state.pos[1]),color)
                     self.av.addFigure(state.label, self.f)
@@ -861,7 +854,7 @@ def HermiteSpline(points: list,tangents: list,scales:list=[],res=25) -> list:
     if len(scales) == 0:
         a = [ absP( points[x]-points[x+1] ) for x in range(0,len(points)-1) ]
         delta = [  points[x+1]-points[x]  for x in range(0,len(points)-1) ]
-        v = [ array([ cos( tangents[i] * pi / 180 ) , -sin( tangents[i] * pi / 180 )  ]) for i in range(len(tangents))]
+        v = [ array([ cos( tangents[i] * pi / 180 ) , sin( tangents[i] * pi / 180 )  ]) for i in range(len(tangents))]
         if dotP(delta[0],v[0]) < 0:
             scales = [a[0]*-1]
         else:
@@ -894,7 +887,7 @@ def HermiteSpline(points: list,tangents: list,scales:list=[],res=25) -> list:
     
     # Convert tagents to velocity
     # invert y because higher values are down
-    velocities = [ array([ scales[i]*cos( tangents[i] * pi / 180 ) , -scales[i]*sin( tangents[i] * pi / 180 )  ]) 
+    velocities = [ array([ scales[i]*cos( tangents[i] * pi / 180 ) , scales[i]*sin( tangents[i] * pi / 180 )  ]) 
                   for i in range(len(tangents))]
     output = []
     for i in range(1,len(points)):
