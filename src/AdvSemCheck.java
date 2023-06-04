@@ -260,8 +260,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       // O ID do for apenas existe enquanto o for existir
       String forVarID = ctx.ID().getText();
       String[] statesInLoopExpr;
-      // TODO: Aqui não tenho a certeza se o type dos elementos da lista é obrigatoriamente estados
-      // para já, vou assumir que os elementos da lista são states
       currentSymbolTable.putSymbol(forVarID, new Symbol(STATE_TYPE));
       visit(ctx.expr());
       // Verificar se o expr devolve uma lista
@@ -281,6 +279,8 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       }
       currentSymbolTable.removeSymbol(forVarID);
       loopStates.clear();
+      currentStateString = "";
+
       return res;
    }
 
@@ -410,10 +410,12 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
             ErrorHandling.printError(ctx,"Invalid property value for \"" + propertyKey + "\" as propertyKey");
             
          } else {
-            if (propertyValue.equals("true")) {
-               states.addProperty(currentStateString, propertyKey);
-            } else {
-               states.removeProperty(currentStateString, propertyKey);
+            if (!currentStateString.isEmpty()) {
+               if (propertyValue.equals("true")) {
+                  states.addProperty(currentStateString, propertyKey);
+               } else {
+                  states.removeProperty(currentStateString, propertyKey);
+               }
             }
          }
          valuesToString.put(ctx, "initial");
@@ -422,10 +424,12 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
             ErrorHandling.printError(ctx,String.format("Invalid property value for \"%s\" as propertyKey - \"%s\"", propertyKey, propertyValue));
             
          } else {
-            if (propertyValue.equals("true")) {
-               states.addProperty(currentStateString, propertyKey);
-            } else {
-               states.removeProperty(currentStateString, propertyKey);
+            if (!currentStateString.isEmpty()) {
+               if (propertyValue.equals("true")) {
+                  states.addProperty(currentStateString, propertyKey);
+               } else {
+                  states.removeProperty(currentStateString, propertyKey);
+               }
             }
          }
          valuesToString.put(ctx, "accepting");
@@ -581,8 +585,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
 
       // O ID do for apenas existe enquanto o for existir
       String forVarID = ctx.ID().getText();
-      // TODO: Aqui não tenho a certeza se o type dos elementos da lista é obrigatoriamente estados
-      // para já, vou assumir que os elementos da lista são states
       currentSymbolTable.putSymbol(forVarID, new Symbol(STATE_TYPE));
       visit(ctx.expr());
       // Verificar se o expr devolve uma lista
@@ -601,6 +603,8 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
             visit(ctx.viewStat(i));
       }
       currentSymbolTable.removeSymbol(forVarID);
+      loopStates.clear();
+      currentStateString = "";
       return res;
    }
 
@@ -725,7 +729,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    @Override public Boolean visitIDplaceElement(advParser.IDplaceElementContext ctx) {
       Boolean res = null;
       // Verificar que ID existe e é um state
-      // TODO: cuidado com o scope, symbol table para encontrar o state 
       String exprType;
 
       String stateID = ctx.ID().getText();
@@ -792,6 +795,15 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       Boolean res = true;
       String gridProperty = ctx.gridProperties().getText();
       String gridValue = "";
+      if (ctx.Number() == null) {
+         for (int i = 0; i < ctx.ID().size(); i++)
+         { 
+            gridValue = gridValue + ctx.ID(i).getText() + " ";
+         }
+      } else {
+         gridValue = gridValue + ctx.Number().getText();
+      }
+      /*
       if (ctx.ID() != null) {
          for (int i = 0; i < ctx.ID().size(); i++)
          { 
@@ -800,28 +812,28 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       } else if (ctx.Number() != null) {
          gridValue = gridValue + ctx.Number().getText();
       }
-
-
+      */
+      gridValue = gridValue.strip();
       if (gridProperty.equals("step")) {
          if (ctx.Number() == null) { // tem de ser um numero
-            ErrorHandling.printError(ctx,String.format("ERROR: Invalid grid property value for \"%s\" as propertyKey - \"%s\". Must be a number.", gridProperty, gridValue));
+            ErrorHandling.printError(ctx,String.format("Invalid grid property value for \"%s\" as propertyKey - \"%s\". Must be a number.", gridProperty, gridValue));
             
          }
       } else if (gridProperty.equals("margin")) {
          if (ctx.Number() == null) { // tem de ser um numero
-            ErrorHandling.printError(ctx,String.format("ERROR: Invalid grid property value for \"%s\" as propertyKey - \"%s\". Must be a number.", gridProperty, gridValue));
+            ErrorHandling.printError(ctx,String.format("Invalid grid property value for \"%s\" as propertyKey - \"%s\". Must be a number.", gridProperty, gridValue));
             
          }
 
       } else if (gridProperty.equals("color")) {
          if (ctx.ID() == null) { // tem de ser um ID+, que identifica a cor
-            ErrorHandling.printError(ctx,String.format("ERROR: Invalid grid property value for \"%s\" as propertyKey - \"%s\". Must be a color.", gridProperty, gridValue));
+            ErrorHandling.printError(ctx,String.format("Invalid grid property value for \"%s\" as propertyKey - \"%s\". Must be a color.", gridProperty, gridValue));
             
          }
          
       } else if (gridProperty.equals("line")) {
-         if (!gridValue.equals("solid ") && !gridValue.equals("dotted ") && !gridValue.equals("dashed ")) { // tem de ser um ID+, que identifica a cor
-            ErrorHandling.printError(ctx,String.format("ERROR: Invalid grid property value for \"%s\" as propertyKey - \"%s\". Must be a 'dotted', 'dashed' or 'solid'.", gridProperty, gridValue));
+         if (!gridValue.equals("solid") && !gridValue.equals("dotted") && !gridValue.equals("dashed")) { // tem de ser um ID+, que identifica a propriedade
+            ErrorHandling.printError(ctx,String.format("Invalid grid property value for \"%s\" as propertyKey - \"%s\". Must be a 'dotted', 'dashed' or 'solid'.", gridProperty, gridValue));
             
          }
          
@@ -853,13 +865,11 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       String viewID = ctx.ID(1).getText();
       Symbol viewSymbol;
       AutomatonContainer currentStates;
-      // TODO: é capaz de ser local ao scope da animation
       if (globalSymbolTable.containsSymbol(viewportID))
       {
          ErrorHandling.printError(ctx,String.format("Variable name taken on viewport definition - \"%s\"", viewportID));
          
       } else {
-         // TODO: será que esta linha está certa? se for possivel definir multiplos viewports dentro de uma animation, então está mal
          globalSymbolTable.putSymbol(viewportID, new Symbol(VIEWPORT_TYPE));
          if (globalSymbolTable.containsSymbol(viewID)) {
             viewSymbol = globalSymbolTable.findSymbol(viewID);
@@ -904,7 +914,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
             return visitChildren(ctx);
          }
       } else {
-         ErrorHandling.printError(ctx,String.format("View \"%s\" not found in viewport definition.", viewportID));
+         ErrorHandling.printError(ctx,String.format("Viewport \"%s\" not found.", viewportID));
          
       }
       return res;
@@ -973,6 +983,8 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
             visit(ctx.viewportStat(i));
       }
       currentSymbolTable.removeSymbol(forVarID);
+      loopStates.clear();
+      currentStateString = "";
       return res;
    }
 
@@ -1085,7 +1097,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       return res;
    }
 
-   // TODO: return value
    @Override public Boolean visitAlgebricOP(advParser.AlgebricOPContext ctx) {
       Boolean res = null;
       // só fiz isto porque temos expr na gramatica
@@ -1223,7 +1234,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       return res;
    }
 
-   // TODO: scope do state
    // (ID) irá representar o ponto em que se encontra um state
    @Override public Boolean visitParanthesisIDExpr(advParser.ParanthesisIDExprContext ctx) {
       Boolean res = null;
@@ -1293,7 +1303,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       return visitChildren(ctx);
    }
 
-   // TODO: verificar que expressões são apenas point ou number
    @Override public Boolean visitAddSubExpr(advParser.AddSubExprContext ctx) {
       Boolean res = null;
       visit(ctx.expr(0));     // visita a expressão da esquerda
@@ -1350,7 +1359,6 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
                
             }
          } else if (id_symbol.type() == STATE_TYPE) {
-            // TODO: acho que é impossivel assignment em state_types mas ya, tenho de perguntar
             if (!exprType.equals("string")) {
                ErrorHandling.printError(ctx,String.format("Invalid type '%s' for variable \"%s\". Expected \"%s\".", exprType, id_to_assign, id_symbol.type().name()));
                res = false;
