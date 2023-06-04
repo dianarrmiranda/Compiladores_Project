@@ -33,7 +33,8 @@ public class AutomatonContainer {
 
     // para quando se faz por exemplo A [initial = false]
     public void removeProperty(String state, String property) {
-        statesProperties.get(state).remove(property);
+        if (statesProperties.containsKey(state))
+            statesProperties.get(state).remove(property);
     }
 
     public int InitialStatesCount() {
