@@ -159,7 +159,7 @@ Nesta secção, há uma explicação sucinta dos erros semânticos que encontram
 #### __Erros Semânticos resolvidos__
 ---
 
-###### Erros específicos a certas operações
+##### Erros específicos a certas operações
 
 - caratéres repetidos na definição de alfabeto (incluindo quando se usa um 'range' para definir um alfabeto, como [a-z]);
 - definir autómatos cujo conjunto de transições é inválido, dependendo do tipo de automato (NFA, DFA, complete DFA);
@@ -190,7 +190,7 @@ Nesta secção, há uma explicação sucinta dos erros semânticos que encontram
 
 ---
 
-###### Erros globais a muitas operações
+##### Erros globais a muitas operações
 - usar variáveis com o mesmo nome dentro do mesmo scope (não se pode por exemplo, criar dois pontos chamados p1 dentro de uma view, mas pode se criar dois pontos chamados p1 dentro de  views diferentes)
 - em ciclos for, não iterar por uma expressão iterável, que no caso deste trabalho são os types 'list' e 'string' (apenas se pode iterar por string num ciclo for dentro de um viewport)
 - criar listas com tipos incompatíveis, como por exemplo, uma lista com 2 elementos do tipo 'state' e 1 do tipo 'number' (é garantido que todos os elementos são do mesmo tipo, se não, produzirá um erro semântico)
@@ -210,7 +210,16 @@ ___Observação___: assumimos que há não é possível somar ponto com número 
 ---
 
 #### __Erros Semânticos não resolvidos__
+- variáveis declaradas mas não inicializadas podem ser usadas e não causam erro semântico (exemplo: ```number n1; number n2 = n1 + 2;```  não causa um erro, apesar do uso de n1 antes de assignment).
 
+Bug conhecido: 
+
+- o valor de b não é válido no que toca a expressões booleanas, porém, pode ser usado num if, e não causa erro semântico.
+```
+boolean b = 10; // valor inválido para boolean, mas declara e dá assign a uma variável como boolean
+
+if (b) do <<< // do something >>>		// isto não dá erro, apesar da variável 'b' estar associada a uma expressão booleana inválida
+```
 ---
 
 <br />
