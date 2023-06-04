@@ -141,6 +141,61 @@ A tabela seguinte apresenta instruções que podem existir dentro de uma animaç
 <br />
 
 #### __Tipos de dados número, ponto e lista, assim como álgebras que permitam a sua manipulação__
+Para o desenvolvimento da linguagem adv, foi necessário criar um conjunto de tipos de dados, que são:
+- Número (number);
+- Ponto (point);
+- Lista (list);
+
+__Número (number):__ <br />
+Este tipo de dados representa um simples número inteiro ou número real e estes podem ser ou positivos ou negativos. Com este tipo de dados é possível fazer operações algébricas, como por exemplo:
+```
+number x1 = 1.4;
+number x2 = -2;
+number x3 = x1 + x2;
+```
+
+__Ponto (point):__ <br />
+O tipo de dados ponto representa, tal como o nome indica, a definição de um ponto num espaço bidimensional, ou seja, um ponto com coordenadas x e y, em que estas coordenadas são números. Em adv, também é possível definir uma variável do tipo point com coordenadas polares, ou seja em que o valor de x é o valor de um ângulo, formado entre o eixo de referência e uma linha traçada a partir do ponto de referência até ao ponto em questão, e o valor de y é o tamanho do raio entre o ponto de referência (polo) e o ponto em questão. Também é possível atribuir a uma variável deste tipo o ponto em que um determinado estado se encontra.  Com este tipo de dados também é possível efetuar operações algébricas, como por exemplo:
+```
+place A at (2,1);
+
+// Definição de pontos com coordenadas cartesianas
+point p1 = (5, 3);
+point p2 = (43,2);
+
+point p3 = p1 + p2;
+
+// Definição de um ponto com coordenadas polares
+point p4 = (200:0.5);
+
+point p5 = p3 + p4;
+
+// Definição de um ponto com as coordenadas da posição de um estado
+point p6 = (A);
+
+point pm = (p6+p5)/2 + (0,0.2);
+```
+
+__Lista (list):__ <br />
+Este tipo de dados representa uma lista que pode conter vários elementos de qualquer tipo de dados, como estados, números, pontos, autómatos, entre outros.
+Também é possível efetuar operações algébricas com listas, no entanto estas só podem envolver variáveis do tipo lista.
+Exemplo:
+```
+point a = (2,1);
+point b = (3,1);
+point c = (1,2);
+point d = (1,3);
+
+list l1 = {{a,b}};
+list l2 = {{c,d}};
+
+list l3 = l1 + l2;
+```
+
+<br />
+
+#### __Definição de instruções de iteração sobre os elementos de uma lista__
+---
 
 
 ### __Análise Semântica - Informação__
@@ -211,66 +266,6 @@ boolean b = 10; // valor inválido para boolean, mas declara e dá assign a uma 
 if (b) do <<< // do something >>>		// isto não dá erro, apesar da variável 'b' estar associada a uma expressão booleana inválida
 ```
 ---
-Para o desenvolvimento da linguagem adv, foi necessário criar um conjunto de tipos de dados, que são:
-- Número (number);
-- Ponto (point);
-- Lista (list);
-
-__Número (number):__ <br />
-Este tipo de dados representa um simples número inteiro ou número real e estes podem ser ou positivos ou negativos. Com este tipo de dados é possível fazer operações algébricas, como por exemplo:
-```
-number x1 = 1.4;
-number x2 = -2;
-number x3 = x1 + x2;
-```
-
-__Ponto (point):__ <br />
-O tipo de dados ponto representa, tal como o nome indica, a definição de um ponto num espaço bidimensional, ou seja, um ponto com coordenadas x e y, em que estas coordenadas são números. Em adv, também é possível definir uma variável do tipo point com coordenadas polares, ou seja em que o valor de x é o valor de um ângulo, formado entre o eixo de referência e uma linha traçada a partir do ponto de referência até ao ponto em questão, e o valor de y é o tamanho do raio entre o ponto de referência (polo) e o ponto em questão. Também é possível atribuir a uma variável deste tipo o ponto em que um determinado estado se encontra.  Com este tipo de dados também é possível efetuar operações algébricas, como por exemplo:
-```
-place A at (2,1);
-
-// Definição de pontos com coordenadas cartesianas
-point p1 = (5, 3);
-point p2 = (43,2);
-
-point p3 = p1 + p2;
-
-// Definição de um ponto com coordenadas polares
-point p4 = (200:0.5);
-
-point p5 = p3 + p4;
-
-// Definição de um ponto com as coordenadas da posição de um estado
-point p6 = (A);
-
-point pm = (p6+p5)/2 + (0,0.2);
-```
-
-<br />
-
-__Lista (list):__ <br />
-Este tipo de dados representa uma lista que pode conter vários elementos de qualquer tipo de dados, como estados, números, pontos, autómatos, entre outros.
-Também é possível efetuar operações algébricas com listas, no entanto estas só podem envolver variáveis do tipo lista.
-Exemplo:
-```
-point a = (2,1);
-point b = (3,1);
-point c = (1,2);
-point d = (1,3);
-
-list l1 = {{a,b}};
-list l2 = {{c,d}};
-
-list l3 = l1 + l2;
-```
-
-<br />
-
-#### __Definição de instruções de iteração sobre os elementos de uma lista__
----
-
-
-
 
 ## Contribuições
 
