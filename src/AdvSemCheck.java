@@ -24,6 +24,9 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
    protected static final Type LIST_TYPE = new ListType();
    protected static final Type GRID_TYPE = new GridType();
 
+   // usados para saber se certos elementos foram bem definidos, por exemplo, um automato
+   // isto serve para quando por exemplo, se define uma view, ver se o automato foi bem definido
+   private Map<String, Boolean> validElements = new HashMap<>();
 
    // ParseTreeProperty usada para passar os simbolos de alphabetElement para alphabetDef,
    // é capaz de ser boa ideia mudar isto, está ineficiente (mas funciona)
@@ -140,6 +143,11 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
             ErrorHandling.printError(ctx,"Couldn't define automaton. Variable name taken.");
             res = false;
          }
+      }
+      if (ErrorHandling.errorCount() == 0) {
+         validElements.put(currentAutomatonString, true);
+      } else {
+         validElements.put(currentAutomatonString, false);
       }
       return res;
    }
@@ -1027,8 +1035,8 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
             ErrorHandling.printError(ctx,String.format("State '%s' not found in the 'show' statement inside viewport.", id));
             
          } else {
-            if (id_Symbol.type() != STATE_TYPE) {
-               ErrorHandling.printError(ctx,String.format("Symbol in 'show' clause is of an invalid type. Must be a state.", id));
+            if (id_Symbol.type() != STATE_TYPE || id_Symbol.type() != GRID_TYPE) {
+               ErrorHandling.printError(ctx,String.format("Symbol in 'show' clause is of an invalid type. Must be a state, transition or grid.", id));
             } else {
                for (int i = 0; i < ctx.propertyElement().size(); i++) {
                visit(ctx.propertyElement(i));
@@ -1304,6 +1312,7 @@ public class AdvSemCheck extends advBaseVisitor<Boolean> {
       Boolean res = false; // devolve true se for booleana (porque eu decidi assim)
       Boolean expr = visit(ctx.expr());
       if (expr != null && expr) res = true;
+      valuesToString.put(ctx, "boolean");
       return res;
    }
 
