@@ -280,9 +280,11 @@ Para este trabalho, o nosso grupo dividiu-o nos seguintes tópicos e distribui o
 - __Interface Gráfica__;
   - Diogo Marto;
   - Tiago Pereira;
+  - Diana Miranda;
 - __Geração de Código__;
   - Diogo Marto;
   - Tiago Pereira;
+  - Diana Miranda;
 - __Interpretador para a Gramática Secundária__;
   - Tiago Pereira;
 
