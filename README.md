@@ -157,5 +157,18 @@ A tabela seguinte apresenta instruções que podem existir dentro de uma animaç
 
 ## Contribuições
 
-- Use esta secção para expôr as contribuições individuais dos vários elementos do grupo e que
-  justificam as participações individuais globais apresentadas no início.
+Para este trabalho, o nosso grupo dividiu-o nos seguintes tópicos e distribui os mesmos pelos elementos do grupo da seguinte forma:
+- __Construção Gramatical__;
+  - Inserir aqui;
+- __Análise Semântica__;
+  - Inserir aqui;
+- __Interface Gráfica__;
+  - Inserir aqui;
+- __Geração de Código__;
+  - Inserir aqui;
+- __Interpretador para a Gramática Secundária__;
+  - Inserir aqui;
+
+
+
+
