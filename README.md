@@ -55,7 +55,7 @@ O nosso grupo conseguiu cumprir totalmente  os requisitos definidos no nível m�
  
 <br />
 
-Para este nível, o nosso grupo conseguiu implementar todos os tópicos que foram definidos para este nível que foram os seguintes:
+Para o nível desejado, o nosso grupo conseguiu implementar todos os tópicos que foram definidos que foram os seguintes:
 - Adicionar a possibilidade de definir como legenda de uma transição a palavra vazia, para os autómatos finitos não deterministas;
 - Ler texto introduzido no terminal;
 - Incluir instruções condicionais, operando sobre  expressões booleanas;
