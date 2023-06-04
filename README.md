@@ -52,7 +52,7 @@ O nosso grupo conseguiu cumprir totalmente  os requisitos definidos no nível m�
   5. Instruções para executar uma animação de um autómato;
   6. Permitir alterar a alteração das propriedades dos elementos intrínsicos (estado, transição) de um autómato;
   7. Definição dos tipos de dados número, ponto e lista, assim como álgebras que permitam a sua manipulação;
-  8. Definições de instruções de iteração sobre os elementos de uma lista;
+  8. Definição de instruções de iteração sobre os elementos de uma lista;
  - Verificação semântica para os elementos referidos anteriormente;
 
 ### Nível Mínimo
@@ -66,7 +66,6 @@ Exemplo:
 alphabet { 'a', 'b', 'c' }
 ```
 - Para se definir um alfabeto em adv é necessário incluir a instrução referida acima, os elementos pertencentes a este iram pertencer a transições presentes num autómato. 
-- Para esta instrução é necessário verificar se o alfabeto é um conjunto não vazio, se os símbolos presentes são sempre representados por caracteres entre plicas, limitados a letras e a algarismos decimais e estes não podem ser repetidos.
 
 <br />
 
@@ -88,8 +87,6 @@ complete DFA a3 <<< >>>
   2. Indicação do ID deste;
   3. Dentro dos elementos "<<< >>>" irá se definir os estados e as transições que constituem o autómato.
 
-- Nesta instrução, relativamente à análise semântica, foi necessário se o tipo do autómato especificado era correto e se o id do autómato já foi definido anteriormente.
-
 <br />
 
 #### __Definição dos elementos intrínsicos de um autómato__
@@ -109,13 +106,6 @@ NFA a1 <<<
         A -> 'a','b','c' -> A;
 >>>
 ```
-- Para qualquer tipo de autómato definido na linguagem adv, pode-se definir os estados, qual é o inicial e qual é o de aceitação, bem como as suas transições.
-- Nesta instrução, para os dois tipos de autómatos possíveis, definimos como análise semântica os seguintes pontos:
-    - Verificar se a definição dos estados e das transições são corretas;
-    - Verificar se não existem estados e transições repetidas;
-    - Verificar nas transições se existem símbolos repetidos;
-    - Garantir que existe apenas 1 estado de iniciação;
-    - Garantir que existe pelo menos 1 estado de aceitação;
 
 <br />
 
@@ -125,8 +115,8 @@ Uma vista de um autómato é definida para se puder representar um autómato num
 A tabela seguinte indica as instruções possíveis para uma view bem como uma pequena descrição:
 | Instrução | Descrição|
 |:---:|:---:|
-| ```view v1 for a1 <<< >>>``` | Definição de uma view (v1) para o autómato a1. É necessário garantir que o autómato a1 existe e que a view v1 ainda não foi criada.|
-| ```place A at (2,1), B at (5,1);``` | Posicionar o estado A e B nos pontos respetivos apresentados. Neste caso, é necessário verificar se a definição do ponto está correta e se os estados escolhidos existem, se são do tipo estado e se pertencem ao autómato definido.|
+| ```view v1 for a1 <<< >>>``` | Definição de uma view (v1) para o autómato a1. |
+| ```place A at (2,1), B at (5,1);``` | Posicionar o estado A e B nos pontos respetivos apresentados. |
 | ```point p1 = (5,2);``` | Definição de uma variável do tipo point. 
 | ```p1 = (B);``` | Atribuir a uma variável do tipo ponto, definido anteriormente, um estado do autómato.
 | ``` point p2 = (A) + (-20:0.6); ``` | Operações algébricas com pontos . |
@@ -144,7 +134,7 @@ A tabela seguinte apresenta instruções que podem existir dentro de uma animaç
 | Instrução | Descrição |
 | :---: | :---: |
 | ``` viewport vp1 for v1 at (10,10) -- ++(500,500); ``` | Criar uma viewport para a view v1 no ponto (10,10), com um tamanho de 500x500 |
-| ``` on vp1 <<< >>> ``` | Para definir quais os elementos que vão ficar visíveis na viewport terá de se escrever esta instrução, tendo de sido feito na anaĺise semântica a verificação de se a viewport referida existe. 
+| ``` on vp1 <<< >>> ``` | Para definir quais os elementos que vão ficar visíveis na viewport terá de se escrever esta instrução.| 
 | ``` show B [accepting = true]; ``` | Esta instrução tem como objetivo indicar quais são os estados que vão ser representados na tela e definir o estado indicado como estado de aceitação. Para indicar qual o estado inicial seria [inital = true]. |
 | ``` pause; ``` | Esta instrução tem como funcionalidade parar a animação do autómato, esta só irá retornar quando o utilizador pressionar a tecla right arrow é que a animação irá avançar para o próximo passo. |
 
@@ -221,8 +211,66 @@ boolean b = 10; // valor inválido para boolean, mas declara e dá assign a uma 
 if (b) do <<< // do something >>>		// isto não dá erro, apesar da variável 'b' estar associada a uma expressão booleana inválida
 ```
 ---
+Para o desenvolvimento da linguagem adv, foi necessário criar um conjunto de tipos de dados, que são:
+- Número (number);
+- Ponto (point);
+- Lista (list);
+
+__Número (number):__ <br />
+Este tipo de dados representa um simples número inteiro ou número real e estes podem ser ou positivos ou negativos. Com este tipo de dados é possível fazer operações algébricas, como por exemplo:
+```
+number x1 = 1.4;
+number x2 = -2;
+number x3 = x1 + x2;
+```
+
+__Ponto (point):__ <br />
+O tipo de dados ponto representa, tal como o nome indica, a definição de um ponto num espaço bidimensional, ou seja, um ponto com coordenadas x e y, em que estas coordenadas são números. Em adv, também é possível definir uma variável do tipo point com coordenadas polares, ou seja em que o valor de x é o valor de um ângulo, formado entre o eixo de referência e uma linha traçada a partir do ponto de referência até ao ponto em questão, e o valor de y é o tamanho do raio entre o ponto de referência (polo) e o ponto em questão. Também é possível atribuir a uma variável deste tipo o ponto em que um determinado estado se encontra.  Com este tipo de dados também é possível efetuar operações algébricas, como por exemplo:
+```
+place A at (2,1);
+
+// Definição de pontos com coordenadas cartesianas
+point p1 = (5, 3);
+point p2 = (43,2);
+
+point p3 = p1 + p2;
+
+// Definição de um ponto com coordenadas polares
+point p4 = (200:0.5);
+
+point p5 = p3 + p4;
+
+// Definição de um ponto com as coordenadas da posição de um estado
+point p6 = (A);
+
+point pm = (p6+p5)/2 + (0,0.2);
+```
 
 <br />
+
+__Lista (list):__ <br />
+Este tipo de dados representa uma lista que pode conter vários elementos de qualquer tipo de dados, como estados, números, pontos, autómatos, entre outros.
+Também é possível efetuar operações algébricas com listas, no entanto estas só podem envolver variáveis do tipo lista.
+Exemplo:
+```
+point a = (2,1);
+point b = (3,1);
+point c = (1,2);
+point d = (1,3);
+
+list l1 = {{a,b}};
+list l2 = {{c,d}};
+
+list l3 = l1 + l2;
+```
+
+<br />
+
+#### __Definição de instruções de iteração sobre os elementos de uma lista__
+---
+
+
+
 
 ## Contribuições
 
