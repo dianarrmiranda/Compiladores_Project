@@ -196,8 +196,15 @@ list l3 = l1 + l2;
 
 #### __Definição de instruções de iteração sobre os elementos de uma lista__
 ---
+Para a linguagem adv nós definimos como instrução de iteração sobre os elementos de uma lista a instrução for ... in ... <<< >>>. Esta instrução destina-se apenas para elementos de que se encontrem numa lista.<br />
+Exemplo:
+```
+for i in {{ A, B, D }} <<<
+  show i [accepting = true];
+>>>
+```
+<br />
 
- 
 ### __Análise Semântica - Informação__
 Nesta secção, há uma explicação sucinta dos erros semânticos que encontramos, incluíndo aqueles que foram resolvidos e aqueles que não conseguimos resolver.
 
@@ -280,9 +287,11 @@ Para este trabalho, o nosso grupo dividiu-o nos seguintes tópicos e distribui o
 - __Interface Gráfica__;
   - Diogo Marto;
   - Tiago Pereira;
+  - Diana Miranda;
 - __Geração de Código__;
   - Diogo Marto;
   - Tiago Pereira;
+  - Diana Miranda;
 - __Interpretador para a Gramática Secundária__;
   - Tiago Pereira;
 
