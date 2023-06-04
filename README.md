@@ -273,7 +273,8 @@ Para este trabalho, o nosso grupo dividiu-o nos seguintes tópicos e distribui o
 - __Construção Gramatical__;
   - Inserir aqui;
 - __Análise Semântica__;
-  - Inserir aqui;
+  - João Dourado
+  - Miguel Figueiredo
 - __Interface Gráfica__;
   - Inserir aqui;
 - __Geração de Código__;
