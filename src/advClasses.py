@@ -278,8 +278,6 @@ class AdvSlopeTransitionFigure(AdvTransitionFigure):
      def __init__(self, key, label, points,slopes , labelpos ,align,linecolor=(0,0,0)):
         super().__init__(key, label,linecolor)
 
-        self.strokeColor = (255,0,0)
-
         spline = HermiteSpline(points,slopes)
         for i in spline:
             self.arrowPoints.append(Point(i[0],i[1]))

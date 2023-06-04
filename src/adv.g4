@@ -68,7 +68,7 @@ animationDef: 'animation' ID '<<<' ( viewportDef | viewportOn )+  '>>>';
 
 viewportDef: 'viewport' ID 'for' ID 'at' expr '--' '++' expr ';';
 viewportOn: 'on' ID '<<<' viewportStat+ '>>>';
-viewportStat: (propertiesDef| viewportFor| viewportInstructions| algebricOP | viewportIf | viewportWhile);
+viewportStat: (propertiesDef| viewportFor| viewportInstructions| algebricOP | viewportIf | viewportWhile | path);
 
 viewportWhile:'while' expr 'do' viewportStat
                |'while' expr 'do' '<<<'viewportStat+'>>>'; 
