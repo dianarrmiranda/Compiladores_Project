@@ -5,12 +5,12 @@
 
 | NMec | Nome | email | Participação |
 |:---:|:---|:---|:---:|
-| 107457 | DIANA RAQUEL RODRIGUES MIRANDA | dianarrmiranda@ua.pt | 0.0% |
-| 108298 | DIOGO MACHADO MARTO | diogo.marto@ua.pt | 0.0% |
-| 108636 | JOAO PEDRO DUARTE DOURADO | joao.dourado1@ua.pt | 0.0% |
-| 108840 | JOSÉ MIGUEL COSTA GAMEIRO | jose.mcgameiro@ua.pt | 0.0% |
-| 108287 | MIGUEL BELCHIOR FIGUEIREDO | miguel.belchior@ua.pt | 0.0% |
-| 108546 | TIAGO FILIPE GONÇALVES PEREIRA | tfgp@ua.pt | 0.0% |
+| 107457 | DIANA RAQUEL RODRIGUES MIRANDA | dianarrmiranda@ua.pt | 16.67% |
+| 108298 | DIOGO MACHADO MARTO | diogo.marto@ua.pt | 16.67% |
+| 108636 | JOAO PEDRO DUARTE DOURADO | joao.dourado1@ua.pt | 16.67% |
+| 108840 | JOSÉ MIGUEL COSTA GAMEIRO | jose.mcgameiro@ua.pt | 16.67% |
+| 108287 | MIGUEL BELCHIOR FIGUEIREDO | miguel.belchior@ua.pt | 16.67% |
+| 108546 | TIAGO FILIPE GONÇALVES PEREIRA | tfgp@ua.pt | 16.67% |
 
 ## Estrutura do repositório
 
