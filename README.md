@@ -52,6 +52,25 @@ O nosso grupo conseguiu cumprir totalmente  os requisitos definidos no nível m�
   7. Definição dos tipos de dados número, ponto e lista, assim como álgebras que permitam a sua manipulação;
   8. Definição de instruções de iteração sobre os elementos de uma lista;
  - Verificação semântica para os elementos referidos anteriormente;
+ 
+<br />
+
+Para este nível, o nosso grupo conseguiu implementar todos os tópicos que foram definidos para este nível que foram os seguintes:
+- Adicionar a possibilidade de definir como legenda de uma transição a palavra vazia, para os autómatos finitos não deterministas;
+- Ler texto introduzido no terminal;
+- Incluir instruções condicionais, operando sobre  expressões booleanas;
+- Adicionar instruções repetitivas, controladas por uma expressão booleana;
+- Incluir nas expressões booleanas pelo menos as operações de conjunção, disjunção e negação, com precedências;
+- Na definição do alfabeto, possibilidade de se usar uma construção gramatical que represente uma sequência de símbolos.
+
+<br />
+
+Para o nível adicional, o nosso grupo conseguiu implementar alguns tópicos que são os seguintes:
+- Definição de uma linguagem secundária auxiliar, interpretada em tempo de execução;
+- Representação das setas das transições por linhas curvas, tendo em consideração a propriedade *slope*;
+- Interpretação e visualização automática da evolução de um autómato ou máquina.
+
+<br />
 
 ### Nível Mínimo
 
@@ -274,23 +293,31 @@ if (b) do <<< // do something >>>		// isto não dá erro, apesar da variável 'b
 <br />
 
 ### Nível Desejado
-Para este nível, o nosso grupo conseguiu implementar todos os tópicos que foram definidos para este nível que foram os seguintes:
-- Adicionar a possibilidade de definir como legenda de uma transição a palavra vazia, para os autómatos finitos não deterministas;
-- Ler texto introduzido no terminal;
-- Incluir instruções condicionais, operando sobre  expressões booleanas;
-- Adicionar instruções repetitivas, controladas por uma expressão booleana;
-- Incluir nas expressões booleanas pelo menos as operações de conjunção, disjunção e negação, com precedências;
-- Na definição do alfabeto, possibilidade de se usar uma construção gramatical que represente uma sequência de símbolos.
+
+#### __Ler texto introduzido no terminal__
+---
+O nosso grupo adicionou a opção de introduzir num ficheiro com a linguagem adv, uma instrução para ler ficheiro do terminal em runtime.<br />
+Exemplo:
+```
+string word = read [prompt="Insira uma palavra: "];
+```
+
+<br />
+
+#### __Adicionar instruções repetitivas, controladas por uma expressão booleana__
+---
+Adicionámos uma instrução repetitiva, em que esta era controlada por uma expressão booleana, e para isso integrámos a instrução while ... do <<< >>>. <br />
+Exemplo:
+```
+while (a != b) do <<< 
+    c= c + 1;
+    a= a - 1;
+>>>
+```
 
 <br />
 
 ### Nível Adicional
-Para este nível, o nosso grupo conseguiu implementar alguns tópicos do nível adicional que são os seguintes:
-- Definição de uma linguagem secundária auxiliar, interpretada em tempo de execução;
-- Representação das setas das transições por linhas curvas, tendo em consideração a propriedade *slope*;
-- Interpretação e visualização automática da evolução de um autómato ou máquina.
-
-<br />
 
 #### __Definição de uma linguagem secundária auxiliar, interpretada em tempo de execução__
 ---
