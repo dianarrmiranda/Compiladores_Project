@@ -34,8 +34,6 @@ Relatório para a linguagem adv do grupo P4-G2 para a unidade curricular de Comp
 - Também nos foi proposto desenvolvermos uma linguagem secundária, designada por xAdv, que permite auxilar a linguagem adv, ao permitir a definição de estilos para o autómato, como a forma de cada estado, o tamanho da fonte de texto das etiquetas dos estados e das transições, a cor dos estados e transições, entre outros.
 - Para nós desenvolvermos o nosso projeto utilizámos a ferramenta __ANTLR4__ como *Parser Generator* implementado em __Java__ para a linguagem principal, adv, e em __Python__ para a linguagem secundária, xadv, sendo que a nossa linguagem alvo é o __Python__, pois usámos a livraria __OpenCV__ para a representação dos autómatos.
 
-<br />
-
 ### Requisitos
 Foram definidos 4 níveis para a realização deste projeto:
 - Nível mínimo;
@@ -57,15 +55,13 @@ O nosso grupo conseguiu cumprir totalmente  os requisitos definidos no nível m�
 
 ### Nível Mínimo
 
-<br />
-
 #### __Definição de um alfabeto__
 ---
+Para se definir um alfabeto em adv é necessário incluir a instrução referida acima, os elementos pertencentes a este iram pertencer a transições presentes num autómato. 
 Exemplo:
 ``` 
 alphabet { 'a', 'b', 'c' }
 ```
-- Para se definir um alfabeto em adv é necessário incluir a instrução referida acima, os elementos pertencentes a este iram pertencer a transições presentes num autómato. 
 
 <br />
 
@@ -82,7 +78,7 @@ DFA a2 <<< >>>
 /* Autómato finito determinístico completo */
 complete DFA a3 <<< >>>
 ```
-- A instrução acima mostra como  definir um automato de entre os 3 tipos disponíveis para a linguagem adv. Esta instrução encontra-se divida em 3 partes:
+A instrução acima mostra como  definir um automato de entre os 3 tipos disponíveis para a linguagem adv. Esta instrução encontra-se divida em 3 partes:
   1. Indicação do tipo do autómato;
   2. Indicação do ID deste;
   3. Dentro dos elementos "<<< >>>" irá se definir os estados e as transições que constituem o autómato.
@@ -118,7 +114,7 @@ A tabela seguinte indica as instruções possíveis para uma view bem como uma p
 | ```view v1 for a1 <<< >>>``` | Definição de uma view (v1) para o autómato a1. |
 | ```place A at (2,1), B at (5,1);``` | Posicionar o estado A e B nos pontos respetivos apresentados. |
 | ```point p1 = (5,2);``` | Definição de uma variável do tipo point. 
-| ```p1 = (B);``` | Atribuir a uma variável do tipo ponto, definido anteriormente, um estado do autómato.
+| ```p1 = (B);``` | Atribuir a uma variável do tipo ponto, definido anteriormente, a posição de um estado do autómato.
 | ``` point p2 = (A) + (-20:0.6); ``` | Operações algébricas com pontos . |
 | ``` <B,A> as p1 -- pm -- p2; ``` | Redefinir a posição de uma seta para prevenir a disposição de duas transições uma em cima da outra. Neste caso a transição de B para A irá ser alterada.
 | ``` place <B,A>#label [align = below] at pm; ``` |  Definir a posição da legenda da transição no ponto indicado. |
@@ -133,10 +129,10 @@ A animação de um autómato consiste num conjunto de instruções que permitem 
 A tabela seguinte apresenta instruções que podem existir dentro de uma animação:
 | Instrução | Descrição |
 | :---: | :---: |
-| ``` viewport vp1 for v1 at (10,10) -- ++(500,500); ``` | Criar uma viewport para a view v1 no ponto (10,10), com um tamanho de 500x500 |
+| ``` viewport vp1 for v1 at (10,10) -- ++(500,500); ``` | Cria uma viewport para a view v1 no ponto (10,10), com um tamanho de 500x500 |
 | ``` on vp1 <<< >>> ``` | Para definir quais os elementos que vão ficar visíveis na viewport terá de se escrever esta instrução.| 
-| ``` show B [accepting = true]; ``` | Esta instrução tem como objetivo indicar quais são os estados que vão ser representados na tela e definir o estado indicado como estado de aceitação. Para indicar qual o estado inicial seria [inital = true]. |
-| ``` pause; ``` | Esta instrução tem como funcionalidade parar a animação do autómato, esta só irá retornar quando o utilizador pressionar a tecla right arrow é que a animação irá avançar para o próximo passo. |
+| ``` show B [accepting = true]; ``` | Esta instrução tem como objetivo indicar quais são os estados que vão ser representados na tela e definir o estado indicado como estado de aceitação. Para indicar qual o estado inicial seria do género [inital = true]. |
+| ``` pause; ``` | Esta instrução tem como funcionalidade parar a animação do autómato, sendo que só irá retornar quando o utilizador pressionar a tecla right arrow. |
 
 <br />
 
@@ -146,16 +142,17 @@ Para o desenvolvimento da linguagem adv, foi necessário criar um conjunto de ti
 - Ponto (point);
 - Lista (list);
 
-__Número (number):__ <br />
-Este tipo de dados representa um simples número inteiro ou número real e estes podem ser ou positivos ou negativos. Com este tipo de dados é possível fazer operações algébricas, como por exemplo:
+__Number (número):__ <br />
+Este tipo de dados representa um simples número inteiro ou número real e estes podem ser positivos ou negativos. Com este tipo de dados é possível fazer operações algébricas, como por exemplo:
 ```
 number x1 = 1.4;
 number x2 = -2;
 number x3 = x1 + x2;
+number x4 = x3 - x1;
 ```
 
-__Ponto (point):__ <br />
-O tipo de dados ponto representa, tal como o nome indica, a definição de um ponto num espaço bidimensional, ou seja, um ponto com coordenadas x e y, em que estas coordenadas são números. Em adv, também é possível definir uma variável do tipo point com coordenadas polares, ou seja em que o valor de x é o valor de um ângulo, formado entre o eixo de referência e uma linha traçada a partir do ponto de referência até ao ponto em questão, e o valor de y é o tamanho do raio entre o ponto de referência (polo) e o ponto em questão. Também é possível atribuir a uma variável deste tipo o ponto em que um determinado estado se encontra.  Com este tipo de dados também é possível efetuar operações algébricas, como por exemplo:
+__Point (ponto):__ <br />
+O tipo de dados point representa, tal como o nome indica, a definição de um ponto num espaço bidimensional, ou seja, um ponto com coordenadas x e y, em que estas coordenadas são números. Em adv, também é possível definir uma variável do tipo point com coordenadas polares, ou seja em que o valor de x é o valor de um ângulo, formado entre o eixo de referência e uma linha traçada a partir do ponto de referência até ao ponto em questão, e o valor de y é o tamanho do raio entre o ponto de referência (polo) e o ponto em questão. Também é possível atribuir a uma variável deste tipo o ponto em que um determinado estado se encontra.  Com este tipo de dados também é possível efetuar operações algébricas, como por exemplo:
 ```
 place A at (2,1);
 
