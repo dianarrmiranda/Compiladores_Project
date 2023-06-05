@@ -13,26 +13,50 @@ import org.antlr.v4.runtime.tree.*;
 @SuppressWarnings("CheckReturnValue")
 public class advCodeGen extends advBaseVisitor<ST> {
 
+   // load templates from python.stg
    private STGroup templates = new STGroupFile("python.stg");
+   // ParseTreeProperty to store on each node of the tree the variables that they use
    private ParseTreeProperty<LinkedList<String>> decl = new ParseTreeProperty();
 
+   // Corresponding variable in source code to variables in compiled code
    private HashMap<String, String> var = new HashMap();
+   // Number of variables used in compiled code
    private int numVar = 0;
 
+   // Function to get new variable for compiled code 
    private String newVar() {
       return "v" + numVar++;
    }
 
+   // Function to get corresponding variable in compiled code
    private String getVar(String v) {
       if (var.containsKey(v))
          return var.get(v);
       return "";
    }
 
+   // Function to set variable the source variable to compiled variable in var HashMap
    private void setVar(String v1, String v2) {
       var.put(v1, v2);
    }
 
+   // Current Element that is being changed by propreties
+   private String curElementProp = "";
+
+   // Current view that is being define
+   private String curView;
+
+   // Set for variables declared on viewport , since this ones generate diferent code
+   private HashSet<String> newVarViewport = new HashSet<>();
+
+   // Current grid being defined 
+   private String curGrid = "";
+
+   // If we are on viewport definition since some variable on viewport generate diferent different code
+   private boolean onViewport = false;
+
+   // Entry point visit all stats 
+   // Alphabet definition doest need to be visited since it doesnt generate code
    @Override
    public ST visitProgram(advParser.ProgramContext ctx) {
       ST res = templates.getInstanceOf("module");
@@ -44,6 +68,7 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate import stat
    @Override
    public ST visitImportstat(advParser.ImportstatContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -53,9 +78,10 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate Automaton
+   // Get a variable , visit children , put the variables that the children use on automaton
    @Override
    public ST visitAutomatonNFADef(advParser.AutomatonNFADefContext ctx) {
-
       ST res = templates.getInstanceOf("stats");
       ST ass = templates.getInstanceOf("assign");
       ST aut = templates.getInstanceOf("automaton");
@@ -84,6 +110,9 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate Automaton
+   // Get a variable , visit children , put the variables that the children use on automaton
+   // Same as last , it may seem bad code but this helps in the semantic part 
    @Override
    public ST visitAutomatonDFADef(advParser.AutomatonDFADefContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -112,9 +141,10 @@ public class advCodeGen extends advBaseVisitor<ST> {
       ass.add("value", aut.render());
       res.add("stat", ass.render());
       return res;
-
    }
 
+   // Generate for 
+   // Get variable for the loop , visit children
    @Override
    public ST visitAutomatonFor(advParser.AutomatonForContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -134,6 +164,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate While
+   // Set variable of expr as the condition in while , visit children , recalculate expr at the end of the loop
    @Override
    public ST visitAutomatonWhile(advParser.AutomatonWhileContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -150,6 +182,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate If
+   // Set variable of expr as the condition , visit children , if else exist visit else
    @Override
    public ST visitAutomatonIf(advParser.AutomatonIfContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -166,6 +200,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate Else
+   // visit children 
    @Override
    public ST visitAutomatonElse(advParser.AutomatonElseContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -177,6 +213,9 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate states
+   // For each state
+   //    Get new var , add to list of used variables by this node , make State
    @Override
    public ST visitStateDef(advParser.StateDefContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -196,6 +235,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate setting propreties of element
+   // Get variable associated with ID and set curElementProp to that , visit children
    @Override
    public ST visitPropertiesDef(advParser.PropertiesDefContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -207,8 +248,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
-   String curElementProp = "";
-
+   // Generate setting propreties of element
+   // get curElementProp , set the key , get the corresponding value
    @Override
    public ST visitPropertyElement(advParser.PropertyElementContext ctx) {
       ST res = templates.getInstanceOf("setP");
@@ -228,6 +269,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate transiton definition
+   // visit children
    @Override
    public ST visitTransitionDef(advParser.TransitionDefContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -241,6 +284,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate transition definition
+   // Get new var to make transition , add symbols to transition , get variable of the states
    @Override
    public ST visitTransitionElement(advParser.TransitionElementContext ctx) {
       ST res = templates.getInstanceOf("assign");
@@ -260,8 +305,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
-   private String curView;
-
+   // Generate view
+   // Get new var , get var associated with automaton , visit children
    @Override
    public ST visitViewDef(advParser.ViewDefContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -287,6 +332,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate for 
+   // Same as last
    @Override
    public ST visitViewFor(advParser.ViewForContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -306,6 +353,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate while 
+   // Same as last
    @Override
    public ST visitViewWhile(advParser.ViewWhileContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -322,6 +371,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate if 
+   // Same as last
    @Override
    public ST visitViewIf(advParser.ViewIfContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -337,6 +388,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate else 
+   // Same as last
    @Override
    public ST visitViewElse(advParser.ViewElseContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -348,15 +401,17 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate update
+   // return the String Update to signal to loop
    @Override
    public ST visitPath(advParser.PathContext ctx) {
       ST res = templates.getInstanceOf("stats");
       res.add("stat","Update");
-      
       return res;
    }
 
-   private HashSet<String> newVarViewport = new HashSet<>();
+   // Generate for , Generate update
+   // Almost same as last one , if if the visit of stats is equal to Update genrate update
    @Override
    public ST visitViewportFor(advParser.ViewportForContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -384,6 +439,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate while
+   // Same as last one
    @Override
    public ST visitViewportWhile(advParser.ViewportWhileContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -400,6 +457,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate if
+   // Same as last one
    @Override
    public ST visitViewportIf(advParser.ViewportIfContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -415,6 +474,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate else
+   // Same as last one
    @Override
    public ST visitViewportElse(advParser.ViewportElseContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -426,6 +487,13 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate adding points to transition
+   // Get transition ( needs a template because its not the var but a intrisic value of automaton )
+   // Add each point ( involves getting the point visit(c) )
+   // for each point
+   //    add key value pair
+   // cant visit PropertyElementContext bcs we want to use a diferent template
+   // maybe a new rule in grammar ?
    @Override
    public ST visitTransitionRedefine(advParser.TransitionRedefineContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -456,6 +524,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // generate point for transition
+   // get variable associated with expr copy value to node
    @Override
    public ST visitTransitionPoint(advParser.TransitionPointContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -466,12 +536,11 @@ public class advCodeGen extends advBaseVisitor<ST> {
       LinkedList<String> l = decl.get(ctx.expr());
       decl.put(ctx, l);
 
-      // for(advParser.PropertyElementContext c : ctx.propertyElement())
-      // res.add("stat",visit(c).render());
-
       return (re.length() == 0) ? null : res;
    }
 
+   // Generate label alter for transition
+   // set curElementProp to transition
    @Override
    public ST visitTransitionLabelAlter(advParser.TransitionLabelAlterContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -490,6 +559,9 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+
+   // Generate label alter for transition
+   // Just a wrapper to put comma correctly
    @Override
    public ST visitTransitionLabelAlterWithComma(advParser.TransitionLabelAlterWithCommaContext ctx) {
       ST res = visit(ctx.transitionLabelAlter());
@@ -497,6 +569,9 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+
+   // Generate code to the get instrisic transition
+   // use the template 
    @Override
    public ST visitTransition(advParser.TransitionContext ctx) {
       ST res = templates.getInstanceOf("get");
@@ -509,6 +584,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate placement
+   // visit children
    @Override
    public ST visitPlaceDef(advParser.PlaceDefContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -520,6 +597,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate placement
+   // get expr , get state 
    @Override
    public ST visitIDplaceElement(advParser.IDplaceElementContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -543,6 +622,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate placement
+   // get transition , get expr
    @Override
    public ST visitTransitionplaceElement(advParser.TransitionplaceElementContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -563,7 +644,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
-   private String curGrid = "";
+   // Generate grid
+   // get var , visit expr , set curGrid to var , visit children
    @Override
    public ST visitGridDef(advParser.GridDefContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -597,6 +679,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate grid potions
+   // change prop of current grid , similar to PropertyElement
    @Override
    public ST visitGridOptions(advParser.GridOptionsContext ctx) {
       ST res = templates.getInstanceOf("setP");
@@ -613,6 +697,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate Animation
+   // get car , visit viewport defs , assign viewports to animation  , visit viewport on
    @Override
    public ST visitAnimationDef(advParser.AnimationDefContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -642,6 +728,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate viewport 
+   // get new var , get exprs
    @Override
    public ST visitViewportDef(advParser.ViewportDefContext ctx) {
       ST ass = templates.getInstanceOf("assign");
@@ -664,7 +752,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
-   private boolean onViewport = false;
+   // Generate viewport animfunc
+   // change onViewport , get new var , visit children 
    @Override
    public ST visitViewportOn(advParser.ViewportOnContext ctx) {
       onViewport = true;
@@ -687,6 +776,13 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return viewP;
    }
 
+   // Generate viewport instruction for show of something 
+   // Kinda bad code no time to refactor :( ( should have used more visitors )
+   // See if transition or id 
+   // if transition , get transition 
+   // if id , get id ( depending if it was declared on viewportstats as diferent template )
+   // for each propreties
+   //    get the propretie key value and set value of id to that 
    @Override
    public ST visitCompound(advParser.CompoundContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -737,6 +833,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate show pause
+   // Check which one make corresponding template
    @Override
    public ST visitSimple(advParser.SimpleContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -752,6 +850,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate play
+   // get var of animation
    @Override
    public ST visitPlayDef(advParser.PlayDefContext ctx) {
       if(getVar(ctx.ID().getText()).equals(""))
@@ -761,6 +861,9 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Doesnt generate anything :)
+   // Python doesnt require decl
+   // visit assigns 
    @Override
    public ST visitDecl(advParser.DeclContext ctx) {
 
@@ -782,6 +885,9 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+
+   // Doesnt generate anything
+   // wrapper for decl and assign operations
    @Override
    public ST visitAlgebricOP(advParser.AlgebricOPContext ctx) {
       ST res = null;
@@ -802,6 +908,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate mult div
+   // visit children , get var to store result , put var in the node , get var of children , do operation
    @Override
    public ST visitMultDivExpr(advParser.MultDivExprContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -825,6 +933,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate and 
+   // Same as multdiv 
    @Override
    public ST visitAndExpr(advParser.AndExprContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -848,6 +958,9 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate getting value of id
+   // if intrisic value being used in viewport , get correct template
+   // else use getVar
    @Override
    public ST visitIDExpr(advParser.IDExprContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -864,6 +977,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Doesnt generate anything
+   // get variable of point
    @Override
    public ST visitPointExpr(advParser.PointExprContext ctx) {
       ST res = visit(ctx.point());
@@ -873,6 +988,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate unray operation
+   // visit child , get new var, get var of children , apply operation
    @Override
    public ST visitUnaryExpr(advParser.UnaryExprContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -894,6 +1011,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Doesnt generate anything
+   // Grammar handles this
    @Override
    public ST visitParanthesisExpr(advParser.ParanthesisExprContext ctx) {
       ST res = visit(ctx.expr());
@@ -901,6 +1020,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate or 
+   // Same as multdiv 
    @Override
    public ST visitOrExpr(advParser.OrExprContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -924,6 +1045,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate equals 
+   // Same as multdiv 
    @Override
    public ST visitEqualsExpr(advParser.EqualsExprContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -947,6 +1070,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate getting pos of state
+   // get new var , use template 
    @Override
    public ST visitParanthesisIDExpr(advParser.ParanthesisIDExprContext ctx) {
       ST res = templates.getInstanceOf("assign");
@@ -972,6 +1097,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate number
+   // get var , assign number to var
    @Override
    public ST visitNumberExpr(advParser.NumberExprContext ctx) {
       ST res = templates.getInstanceOf("assign");
@@ -987,6 +1114,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate input
+   // get var , assign input to var
    @Override
    public ST visitReadExpr(advParser.ReadExprContext ctx) {
       ST res = templates.getInstanceOf("assign");
@@ -1004,6 +1133,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate compare 
+   // Same as multdiv 
    @Override
    public ST visitCompareExpr(advParser.CompareExprContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -1027,6 +1158,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate not
+   // same as unary
    @Override
    public ST visitNotExpr(advParser.NotExprContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -1048,6 +1181,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate list
+   // get value of list , assign new var to value
    @Override
    public ST visitListExpr(advParser.ListExprContext ctx) {
       ST res = templates.getInstanceOf("assign");
@@ -1063,6 +1198,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate add sub 
+   // Same as multdiv 
    @Override
    public ST visitAddSubExpr(advParser.AddSubExprContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -1086,6 +1223,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate assign 
+   // visit child , if var not declared get new var , else get var , assign var to value of expr
    @Override
    public ST visitAssign(advParser.AssignContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -1114,6 +1253,10 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate List
+   // for each ID
+   // if intrisic value being used in viewport , get correct template
+   // else getVar
    @Override
    public ST visitList(advParser.ListContext ctx) {
       ST res = templates.getInstanceOf("array");
@@ -1128,6 +1271,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Doesnt generate anything
+   // Wrapper for pointPol pointRect
    @Override
    public ST visitPoint(advParser.PointContext ctx) {
       ST res = visitChildren(ctx);
@@ -1141,6 +1286,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate point
+   // visit children , assign to x and y correct expr , get new var to sotre result
    @Override
    public ST visitPointRect(advParser.PointRectContext ctx) {
       ST res = templates.getInstanceOf("stats");
@@ -1166,6 +1313,8 @@ public class advCodeGen extends advBaseVisitor<ST> {
       return res;
    }
 
+   // Generate point
+   // visit children , assign to x and y correct expr , do math , get new var to sotre result
    @Override
    public ST visitPointPol(advParser.PointPolContext ctx) {
       ST res = templates.getInstanceOf("stats");
