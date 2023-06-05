@@ -109,7 +109,7 @@ animation m1 <<<
      * create a viewport to show the view v1 of automaton a1, 
      * with the upper-left corner at the given point
      */
-    viewport vp1 for v1 at (10,10) -- ++(500,500);
+    viewport vp1 for v1 at (10,10) -- ++(1000,600);
 
     /* 
      * Inside a viewport, the items of the associated view/automaton 

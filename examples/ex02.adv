@@ -98,9 +98,9 @@ animation m2 <<<
     /*
      * create a viewport to show the view v2 of automaton a2.
      * It corresponds to a window with the upper-left corner at ((10,10),
-     * and with width 500 and height 300.
+     * and with width 1000 and height 600.
      */
-    viewport vp2 for v2 at (10,10) -- ++(500,300);
+    viewport vp2 for v2 at (10,10) -- ++(1000,600);
 
     /* 
      * Inside a viewport, the items of the associated view/automaton are accessible

@@ -20,3 +20,4 @@ done
 cd $path
 antlr4-clean
 antlr4-build
+antlr4-build -python
